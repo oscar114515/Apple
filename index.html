@@ -15,7 +15,6 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
     <style>
-        /* ===== 全部樣式 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -29,8 +28,6 @@
             min-height: 100vh;
             padding-top: 80px;
         }
-
-        /* 導航欄 */
         .navbar-wrapper {
             position: fixed;
             top: 0;
@@ -139,8 +136,6 @@
             background: #dc3545;
             color: white;
         }
-
-        /* 輕盤主內容 */
         .app {
             max-width: 820px;
             width: 100%;
@@ -375,7 +370,6 @@
         .btn-close-sm:hover {
             background: #f1f4f9;
         }
-
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -386,6 +380,10 @@
             font-size: 14px;
             font-weight: 500;
             color: #5a6a7e;
+            display: none;
+        }
+        .file-count.show {
+            display: block;
         }
         .file-count span {
             background: #eef2f6;
@@ -399,6 +397,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            min-height: 0;
         }
         .file-item {
             display: flex;
@@ -500,8 +499,6 @@
             padding: 40px 0;
             font-size: 15px;
         }
-
-        /* 下載頁面 */
         .download-page {
             text-align: center;
             padding: 40px 20px 20px;
@@ -592,8 +589,6 @@
             background: #f0f7ff;
             color: #1a5bbf;
         }
-
-        /* 管理員登入模態框 */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -677,8 +672,6 @@
         .modal-box .cancel-btn:hover {
             background: #f1f4f9;
         }
-
-        /* 登入彈窗 */
         .auth-modal-overlay {
             position: fixed;
             top: 0;
@@ -859,8 +852,6 @@
             font-size: 0.85rem;
             display: none;
         }
-
-        /* 用戶管理彈窗 */
         .admin-modal-overlay {
             position: fixed;
             top: 0;
@@ -932,8 +923,6 @@
             font-size: 0.7rem;
             font-weight: 500;
         }
-
-        /* 加載中彈窗 */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -971,8 +960,6 @@
             font-weight: 500;
             margin: 0;
         }
-
-        /* 聯繫我們彈窗 */
         .modal-overlay-contact {
             position: fixed;
             top: 0;
@@ -1060,7 +1047,6 @@
         .platform-btn-small.xhs { color: #ff2442; }
         .platform-btn-small.douyin { color: #000000; }
         .platform-btn-small.yt { color: #ff0000; }
-
         @media (max-width: 600px) {
             .app { padding: 20px 16px 28px; border-radius: 28px; }
             .logo-text { font-size: 20px; }
@@ -1113,7 +1099,6 @@
     <!-- ===== 輕盤主內容 ===== -->
     <div class="app" id="app">
 
-        <!-- 頂欄 -->
         <div class="topbar">
             <div class="logo-text">
                 <i class="fas fa-cloud-upload-alt"></i>
@@ -1127,13 +1112,10 @@
         </div>
         <div class="subtitle">📤 公開分享 · 登入後上傳 · 即傳即用</div>
 
-        <!-- 狀態 -->
         <div id="status"></div>
 
-        <!-- 主界面 -->
         <div id="mainUI">
 
-            <!-- 上傳區 -->
             <div class="upload-card" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                 <span class="icon">📤</span>
                 <p>點擊或拖曳上傳檔案</p>
@@ -1141,7 +1123,6 @@
             </div>
             <input type="file" id="fileInput" onchange="handleFileSelect(event)" />
 
-            <!-- 上傳成功卡片 -->
             <div class="upload-success" id="uploadSuccess">
                 <div class="file-info">
                     <div class="file-name" id="successFileName">檔案名稱</div>
@@ -1154,16 +1135,13 @@
                 </div>
             </div>
 
-            <!-- 檔案列表 -->
+            <!-- ===== 檔案列表（未登入完全空白） ===== -->
             <div class="list-header">
-                <div class="file-count">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
+                <div class="file-count" id="fileCount">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
             </div>
-            <div id="fileList">
-                <div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>
-            </div>
+            <div id="fileList"></div>
         </div>
 
-        <!-- 下載頁面 -->
         <div id="downloadUI" style="display:none;">
             <div class="download-page">
                 <div class="big-icon" id="downloadIcon">📄</div>
@@ -1178,7 +1156,7 @@
         </div>
     </div>
 
-    <!-- ===== 管理員登入模態框 ===== -->
+    <!-- ===== 管理員登入 ===== -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
             <h2>🔐 管理員登入</h2>
@@ -1244,7 +1222,7 @@
         </div>
     </div>
 
-    <!-- ===== 用戶管理彈窗 ===== -->
+    <!-- ===== 用戶管理 ===== -->
     <div class="admin-modal-overlay" id="adminModalUsers">
         <div class="admin-modal-box">
             <button class="modal-close" id="closeAdminModalUsers"><i class="fas fa-times"></i></button>
@@ -1253,7 +1231,7 @@
         </div>
     </div>
 
-    <!-- ===== 加載中彈窗 ===== -->
+    <!-- ===== 加載中 ===== -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-box">
             <div class="loading-spinner-full"></div>
@@ -1261,7 +1239,7 @@
         </div>
     </div>
 
-    <!-- ===== 聯繫我們彈窗 ===== -->
+    <!-- ===== 聯繫我們 ===== -->
     <div class="modal-overlay-contact" id="contactModal">
         <div class="modal-box-contact" onclick="event.stopPropagation()">
             <div class="contact-info">
@@ -1350,17 +1328,12 @@
         const registerTabBtn = document.getElementById('registerTabBtn');
         const loginPanel = document.getElementById('loginPanel');
         const registerPanel = document.getElementById('registerPanel');
-        const loginName = document.getElementById('loginName');
-        const loginPassword = document.getElementById('loginPassword');
-        const loginSubmit = document.getElementById('loginSubmitBtn');
         const loginMessage = document.getElementById('loginMessage');
-        const regName = document.getElementById('regName');
-        const regPassword = document.getElementById('regPassword');
-        const regConfirmPassword = document.getElementById('regConfirmPassword');
-        const registerSubmit = document.getElementById('registerSubmitBtn');
         const registerMessage = document.getElementById('registerMessage');
         const googleLoginBtn = document.getElementById('googleLoginBtn');
         const googleRegisterBtn = document.getElementById('googleRegisterBtn');
+        const loginSubmit = document.getElementById('loginSubmitBtn');
+        const registerSubmit = document.getElementById('registerSubmitBtn');
 
         const adminModalUsers = document.getElementById('adminModalUsers');
         const closeAdminModalUsers = document.getElementById('closeAdminModalUsers');
@@ -1508,7 +1481,7 @@
         }
 
         // ============================================================
-        // 5. Firebase 認證 (簡化為 Google 登入)
+        // 5. Firebase 認證
         // ============================================================
         async function googleLogin() {
             showLoading('Google 登入中...');
@@ -1538,7 +1511,7 @@
             hideUI();
         }
 
-        // 綁定登入按鈕
+        // 綁定登入
         googleLoginBtn.addEventListener('click', googleLogin);
         googleRegisterBtn.addEventListener('click', googleLogin);
         loginSubmit.addEventListener('click', googleLogin);
@@ -1584,7 +1557,7 @@
         };
 
         // ============================================================
-        // 7. 輕盤核心功能
+        // 7. 輕盤核心
         // ============================================================
         let isAdmin = false;
         let adminClickCount = 0;
@@ -1652,7 +1625,7 @@
         }
 
         // ============================================================
-        // 🔥 核心下載：永不跳轉（強制下載）
+        // 🔥 核心下載：永不跳轉
         // ============================================================
         async function downloadFileDirect(url, fileName) {
             if (!fileName) fileName = url.split('/').pop() || '下載檔案';
@@ -1660,21 +1633,17 @@
             try {
                 if (btn) { btn.textContent = '⏳';
                     btn.disabled = true; }
-                // 用 fetch 獲取檔案內容
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('下載失敗 (HTTP ' + response.status + ')');
                 const blob = await response.blob();
                 const objectURL = URL.createObjectURL(blob);
-
                 const a = document.createElement('a');
                 a.href = objectURL;
                 a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-
                 setTimeout(() => URL.revokeObjectURL(objectURL), 5000);
-
                 if (btn) { btn.textContent = '✅';
                     setTimeout(() => { btn.textContent = '⬇️ 下載';
                         btn.disabled = false; }, 1500); }
@@ -1759,27 +1728,44 @@
         }
 
         // ============================================================
-        // 9. 載入檔案列表
+        // 🔥 9. 載入檔案列表（未登入完全空白）
         // ============================================================
         async function loadFileList() {
+            const container = document.getElementById('fileList');
+            const countEl = document.getElementById('fileCountNum');
+            const countWrap = document.getElementById('fileCount');
+            const user = auth.currentUser;
+
+            // 未登入 → 完全空白（什麼文字都沒有）
+            if (!user) {
+                container.innerHTML = '';
+                countEl.textContent = '';
+                countWrap.classList.remove('show');
+                return;
+            }
+
+            // 已登入 → 顯示自己的檔案
             try {
-                let query = supabaseClient.from('files').select('*');
-                if (!isAdmin) {
-                    const uid = getCurrentUserUid();
-                    if (uid) {
-                        query = query.eq('uploader', uid);
-                    } else {
-                        // 未登入時不顯示任何檔案（或顯示公開檔案，這裡選擇不顯示）
-                        query = query.eq('uploader', '');
-                    }
+                const uid = getCurrentUserUid();
+                if (!uid) {
+                    container.innerHTML = '';
+                    countEl.textContent = '';
+                    countWrap.classList.remove('show');
+                    return;
                 }
-                const { data, error } = await query.order('created_at', { ascending: false });
+
+                const { data, error } = await supabaseClient
+                    .from('files')
+                    .select('*')
+                    .eq('uploader', uid)
+                    .order('created_at', { ascending: false });
+
                 if (error) throw error;
 
                 const count = data?.length || 0;
-                document.getElementById('fileCountNum').textContent = count;
+                countEl.textContent = count;
+                countWrap.classList.add('show');
 
-                const container = document.getElementById('fileList');
                 if (!data || count === 0) {
                     container.innerHTML = `<div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>`;
                     return;
@@ -1791,7 +1777,6 @@
                     const shortLink = window.location.origin + window.location.pathname + '?download=' + f.short_code;
                     const time = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
                     const uploaderDisplay = f.uploader_name || f.uploader_email || '匿名用戶';
-                    const uploaderInfo = isAdmin ? ` · 上傳者: ${uploaderDisplay}` : ` · 👤 ${uploaderDisplay}`;
 
                     html += `
                         <div class="file-item">
@@ -1799,7 +1784,7 @@
                                 <div class="icon">📄</div>
                                 <div>
                                     <div class="name">${f.file_name}</div>
-                                    <div class="meta">${sizeMB} MB · ${f.download_count || 0} 次下載 · ${time}${uploaderInfo}</div>
+                                    <div class="meta">${sizeMB} MB · ${f.download_count || 0} 次下載 · ${time} · 👤 ${uploaderDisplay}</div>
                                     <div class="short-link">🔗 ${shortLink}</div>
                                 </div>
                             </div>
@@ -1813,8 +1798,7 @@
                 });
                 container.innerHTML = html;
             } catch (err) {
-                document.getElementById('fileList').innerHTML =
-                    `<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ${err.message}</div>`;
+                container.innerHTML = `<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ${err.message}</div>`;
             }
         }
 
@@ -2049,6 +2033,7 @@
             if (!params.get('download') && !params.has('admin')) {
                 document.getElementById('mainUI').style.display = 'block';
                 document.getElementById('downloadUI').style.display = 'none';
+                // 只有登入才載入檔案，未登入時 loadFileList 會自動留白
                 loadFileList();
                 showStatus('✅ 就緒', 'success');
                 console.log('☁️ 輕盤已啟動');
@@ -2056,7 +2041,7 @@
             }
         };
 
-        console.log('☁️ 輕盤 · 已整合 Firebase 登入');
+        console.log('☁️ 輕盤 · 最終完整版');
         console.log('🔑 管理員入口: ?admin');
         console.log('👤 當前用戶:', auth.currentUser?.displayName || '未登入');
     </script>
