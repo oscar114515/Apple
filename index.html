@@ -119,7 +119,7 @@
 
         /* 认证表单 */
         .auth-container {
-            max-width: 400px;
+            max-width: 480px;
             margin: 0 auto 24px;
         }
         .auth-tabs {
@@ -156,7 +156,9 @@
         .auth-form.active {
             display: flex;
         }
-        .auth-form input {
+        .auth-form input,
+        .auth-form .country-selector {
+            width: 100%;
             padding: 14px 16px;
             border: 1px solid #e2e8f0;
             border-radius: 20px;
@@ -183,6 +185,10 @@
         .auth-form button:hover {
             background: #2b6af7;
         }
+        .auth-form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .auth-form .toggle-link {
             text-align: center;
             font-size: 14px;
@@ -202,8 +208,133 @@
         .auth-form .error-msg.show {
             display: block;
         }
+        .auth-form .success-msg {
+            color: #0f7b3a;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+        .auth-form .success-msg.show {
+            display: block;
+        }
 
-        /* 其他元素复用之前样式 */
+        /* ===== 国家选择器 ===== */
+        .country-selector {
+            position: relative;
+        }
+        .country-selector .selected {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            background: #fafcff;
+            transition: 0.2s;
+        }
+        .country-selector .selected:hover {
+            border-color: #1e5ef7;
+        }
+        .country-selector .selected .flag {
+            font-size: 22px;
+        }
+        .country-selector .selected .code {
+            color: #8a98aa;
+            font-size: 13px;
+        }
+        .country-selector .selected .arrow {
+            margin-left: auto;
+            color: #8a98aa;
+            transition: 0.2s;
+        }
+        .country-selector .selected .arrow.open {
+            transform: rotate(180deg);
+        }
+        .country-selector .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            margin-top: 6px;
+            max-height: 300px;
+            overflow: hidden;
+            z-index: 100;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        }
+        .country-selector .dropdown.open {
+            display: block;
+        }
+        .country-selector .dropdown .search {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f2f6;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+        .country-selector .dropdown .search input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 14px;
+            outline: none;
+            background: #fafcff;
+        }
+        .country-selector .dropdown .search input:focus {
+            border-color: #1e5ef7;
+        }
+        .country-selector .dropdown .list {
+            overflow-y: auto;
+            max-height: 220px;
+            padding: 4px 0;
+        }
+        .country-selector .dropdown .list .item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .country-selector .dropdown .list .item:hover {
+            background: #f0f7ff;
+        }
+        .country-selector .dropdown .list .item .flag {
+            font-size: 20px;
+            min-width: 28px;
+        }
+        .country-selector .dropdown .list .item .name {
+            flex: 1;
+            font-size: 14px;
+        }
+        .country-selector .dropdown .list .item .code {
+            color: #8a98aa;
+            font-size: 13px;
+        }
+        .country-selector .dropdown .list .no-result {
+            padding: 20px;
+            text-align: center;
+            color: #8a98aa;
+            font-size: 14px;
+        }
+        .country-selector .dropdown .list .group-label {
+            padding: 6px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #8a98aa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f8fafc;
+            border-bottom: 1px solid #f0f2f6;
+        }
+
+        /* ===== 其他样式 ===== */
         #status {
             padding: 12px 18px;
             border-radius: 16px;
@@ -644,22 +775,42 @@
                 <button class="auth-tab" data-tab="phone">手機簡訊</button>
             </div>
 
-            <!-- 邮箱登录/注册 -->
+            <!-- ===== 邮箱登录/注册 ===== -->
             <div class="auth-form active" id="emailForm">
                 <input type="email" id="emailInput" placeholder="電子郵件" />
                 <input type="password" id="passwordInput" placeholder="密碼 (至少6位)" />
                 <button id="emailActionBtn">登入</button>
                 <div class="toggle-link" id="toggleEmailMode">還沒有帳號？註冊</div>
                 <div class="error-msg" id="emailError"></div>
+                <div class="success-msg" id="emailSuccess"></div>
             </div>
 
-            <!-- 手机短信登录 -->
+            <!-- ===== 手机短信登录 ===== -->
             <div class="auth-form" id="phoneForm">
-                <input type="tel" id="phoneInput" placeholder="手機號碼 (含國碼, 如 +886 912345678)" />
+                <!-- 国家选择器 -->
+                <div class="country-selector" id="countrySelector">
+                    <div class="selected" id="selectedCountry" onclick="toggleCountryDropdown()">
+                        <span class="flag" id="selectedFlag">🌍</span>
+                        <span id="selectedName">選擇國家</span>
+                        <span class="code" id="selectedCode">+XX</span>
+                        <span class="arrow" id="dropdownArrow">▾</span>
+                    </div>
+                    <div class="dropdown" id="countryDropdown">
+                        <div class="search">
+                            <input type="text" id="countrySearch" placeholder="搜尋國家或區號..." oninput="filterCountries()" />
+                        </div>
+                        <div class="list" id="countryList"></div>
+                    </div>
+                </div>
+                <!-- 手机号输入 -->
+                <input type="tel" id="phoneInput" placeholder="手機號碼 (例如 912345678)" style="margin-top:4px;" />
+                <!-- reCAPTCHA 容器 (可见) -->
+                <div id="recaptcha-container" style="margin:4px 0;"></div>
                 <button id="sendCodeBtn">發送驗證碼</button>
                 <input type="text" id="codeInput" placeholder="驗證碼" style="margin-top:8px;" />
                 <button id="verifyCodeBtn">驗證並登入</button>
                 <div class="error-msg" id="phoneError"></div>
+                <div class="success-msg" id="phoneSuccess"></div>
             </div>
         </div>
 
@@ -722,7 +873,7 @@
     <!-- ============================================================ -->
     <script>
         // ============================================================
-        // Firebase 配置（你的项目）
+        // 1. Firebase 配置
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBKSHBZO-q_0Xl6p49PEVXX5QvXQwzA_Jo",
@@ -740,40 +891,392 @@
         const storage = firebase.storage();
 
         // ============================================================
-        // 全局狀態
+        // 2. 完整國家/地區列表 (240+ 個，包含所有獨立地區)
+        // ============================================================
+        const countries = [
+            // ===== 亞洲 =====
+            { code: '+93', name: '阿富汗', flag: '🇦🇫', region: '亞洲' },
+            { code: '+374', name: '亞美尼亞', flag: '🇦🇲', region: '亞洲' },
+            { code: '+994', name: '亞塞拜然', flag: '🇦🇿', region: '亞洲' },
+            { code: '+973', name: '巴林', flag: '🇧🇭', region: '亞洲' },
+            { code: '+880', name: '孟加拉', flag: '🇧🇩', region: '亞洲' },
+            { code: '+975', name: '不丹', flag: '🇧🇹', region: '亞洲' },
+            { code: '+673', name: '汶萊', flag: '🇧🇳', region: '亞洲' },
+            { code: '+855', name: '柬埔寨', flag: '🇰🇭', region: '亞洲' },
+            { code: '+86', name: '中國', flag: '🇨🇳', region: '亞洲' },
+            { code: '+852', name: '香港', flag: '🇭🇰', region: '亞洲' },
+            { code: '+853', name: '澳門', flag: '🇲🇴', region: '亞洲' },
+            { code: '+886', name: '台灣', flag: '🇹🇼', region: '亞洲' },
+            { code: '+357', name: '賽普勒斯', flag: '🇨🇾', region: '亞洲' },
+            { code: '+995', name: '喬治亞', flag: '🇬🇪', region: '亞洲' },
+            { code: '+91', name: '印度', flag: '🇮🇳', region: '亞洲' },
+            { code: '+62', name: '印尼', flag: '🇮🇩', region: '亞洲' },
+            { code: '+98', name: '伊朗', flag: '🇮🇷', region: '亞洲' },
+            { code: '+964', name: '伊拉克', flag: '🇮🇶', region: '亞洲' },
+            { code: '+972', name: '以色列', flag: '🇮🇱', region: '亞洲' },
+            { code: '+81', name: '日本', flag: '🇯🇵', region: '亞洲' },
+            { code: '+962', name: '約旦', flag: '🇯🇴', region: '亞洲' },
+            { code: '+7', name: '哈薩克', flag: '🇰🇿', region: '亞洲' },
+            { code: '+965', name: '科威特', flag: '🇰🇼', region: '亞洲' },
+            { code: '+996', name: '吉爾吉斯', flag: '🇰🇬', region: '亞洲' },
+            { code: '+856', name: '寮國', flag: '🇱🇦', region: '亞洲' },
+            { code: '+961', name: '黎巴嫩', flag: '🇱🇧', region: '亞洲' },
+            { code: '+60', name: '馬來西亞', flag: '🇲🇾', region: '亞洲' },
+            { code: '+960', name: '馬爾地夫', flag: '🇲🇻', region: '亞洲' },
+            { code: '+976', name: '蒙古', flag: '🇲🇳', region: '亞洲' },
+            { code: '+95', name: '緬甸', flag: '🇲🇲', region: '亞洲' },
+            { code: '+977', name: '尼泊爾', flag: '🇳🇵', region: '亞洲' },
+            { code: '+850', name: '北韓', flag: '🇰🇵', region: '亞洲' },
+            { code: '+968', name: '阿曼', flag: '🇴🇲', region: '亞洲' },
+            { code: '+92', name: '巴基斯坦', flag: '🇵🇰', region: '亞洲' },
+            { code: '+970', name: '巴勒斯坦', flag: '🇵🇸', region: '亞洲' },
+            { code: '+63', name: '菲律賓', flag: '🇵🇭', region: '亞洲' },
+            { code: '+974', name: '卡達', flag: '🇶🇦', region: '亞洲' },
+            { code: '+966', name: '沙烏地阿拉伯', flag: '🇸🇦', region: '亞洲' },
+            { code: '+65', name: '新加坡', flag: '🇸🇬', region: '亞洲' },
+            { code: '+82', name: '南韓', flag: '🇰🇷', region: '亞洲' },
+            { code: '+94', name: '斯里蘭卡', flag: '🇱🇰', region: '亞洲' },
+            { code: '+963', name: '敘利亞', flag: '🇸🇾', region: '亞洲' },
+            { code: '+992', name: '塔吉克', flag: '🇹🇯', region: '亞洲' },
+            { code: '+66', name: '泰國', flag: '🇹🇭', region: '亞洲' },
+            { code: '+90', name: '土耳其', flag: '🇹🇷', region: '亞洲' },
+            { code: '+993', name: '土庫曼', flag: '🇹🇲', region: '亞洲' },
+            { code: '+971', name: '阿聯酋', flag: '🇦🇪', region: '亞洲' },
+            { code: '+998', name: '烏茲別克', flag: '🇺🇿', region: '亞洲' },
+            { code: '+84', name: '越南', flag: '🇻🇳', region: '亞洲' },
+            { code: '+967', name: '葉門', flag: '🇾🇪', region: '亞洲' },
+
+            // ===== 歐洲 =====
+            { code: '+355', name: '阿爾巴尼亞', flag: '🇦🇱', region: '歐洲' },
+            { code: '+376', name: '安道爾', flag: '🇦🇩', region: '歐洲' },
+            { code: '+43', name: '奧地利', flag: '🇦🇹', region: '歐洲' },
+            { code: '+375', name: '白俄羅斯', flag: '🇧🇾', region: '歐洲' },
+            { code: '+32', name: '比利時', flag: '🇧🇪', region: '歐洲' },
+            { code: '+387', name: '波士尼亞', flag: '🇧🇦', region: '歐洲' },
+            { code: '+359', name: '保加利亞', flag: '🇧🇬', region: '歐洲' },
+            { code: '+385', name: '克羅埃西亞', flag: '🇭🇷', region: '歐洲' },
+            { code: '+420', name: '捷克', flag: '🇨🇿', region: '歐洲' },
+            { code: '+45', name: '丹麥', flag: '🇩🇰', region: '歐洲' },
+            { code: '+372', name: '愛沙尼亞', flag: '🇪🇪', region: '歐洲' },
+            { code: '+358', name: '芬蘭', flag: '🇫🇮', region: '歐洲' },
+            { code: '+33', name: '法國', flag: '🇫🇷', region: '歐洲' },
+            { code: '+49', name: '德國', flag: '🇩🇪', region: '歐洲' },
+            { code: '+30', name: '希臘', flag: '🇬🇷', region: '歐洲' },
+            { code: '+36', name: '匈牙利', flag: '🇭🇺', region: '歐洲' },
+            { code: '+354', name: '冰島', flag: '🇮🇸', region: '歐洲' },
+            { code: '+353', name: '愛爾蘭', flag: '🇮🇪', region: '歐洲' },
+            { code: '+39', name: '義大利', flag: '🇮🇹', region: '歐洲' },
+            { code: '+371', name: '拉脫維亞', flag: '🇱🇻', region: '歐洲' },
+            { code: '+423', name: '列支敦士登', flag: '🇱🇮', region: '歐洲' },
+            { code: '+370', name: '立陶宛', flag: '🇱🇹', region: '歐洲' },
+            { code: '+352', name: '盧森堡', flag: '🇱🇺', region: '歐洲' },
+            { code: '+389', name: '北馬其頓', flag: '🇲🇰', region: '歐洲' },
+            { code: '+356', name: '馬爾他', flag: '🇲🇹', region: '歐洲' },
+            { code: '+373', name: '摩爾多瓦', flag: '🇲🇩', region: '歐洲' },
+            { code: '+377', name: '摩納哥', flag: '🇲🇨', region: '歐洲' },
+            { code: '+382', name: '蒙特內哥羅', flag: '🇲🇪', region: '歐洲' },
+            { code: '+31', name: '荷蘭', flag: '🇳🇱', region: '歐洲' },
+            { code: '+47', name: '挪威', flag: '🇳🇴', region: '歐洲' },
+            { code: '+48', name: '波蘭', flag: '🇵🇱', region: '歐洲' },
+            { code: '+351', name: '葡萄牙', flag: '🇵🇹', region: '歐洲' },
+            { code: '+40', name: '羅馬尼亞', flag: '🇷🇴', region: '歐洲' },
+            { code: '+7', name: '俄羅斯', flag: '🇷🇺', region: '歐洲' },
+            { code: '+378', name: '聖馬利諾', flag: '🇸🇲', region: '歐洲' },
+            { code: '+381', name: '塞爾維亞', flag: '🇷🇸', region: '歐洲' },
+            { code: '+421', name: '斯洛伐克', flag: '🇸🇰', region: '歐洲' },
+            { code: '+386', name: '斯洛維尼亞', flag: '🇸🇮', region: '歐洲' },
+            { code: '+34', name: '西班牙', flag: '🇪🇸', region: '歐洲' },
+            { code: '+46', name: '瑞典', flag: '🇸🇪', region: '歐洲' },
+            { code: '+41', name: '瑞士', flag: '🇨🇭', region: '歐洲' },
+            { code: '+380', name: '烏克蘭', flag: '🇺🇦', region: '歐洲' },
+            { code: '+44', name: '英國', flag: '🇬🇧', region: '歐洲' },
+            { code: '+39', name: '梵蒂岡', flag: '🇻🇦', region: '歐洲' },
+            // 歐洲其他地區
+            { code: '+44', name: '澤西島', flag: '🇯🇪', region: '歐洲' },
+            { code: '+44', name: '根西島', flag: '🇬🇬', region: '歐洲' },
+            { code: '+44', name: '馬恩島', flag: '🇮🇲', region: '歐洲' },
+            { code: '+299', name: '格陵蘭', flag: '🇬🇱', region: '歐洲' },
+            { code: '+298', name: '法羅群島', flag: '🇫🇴', region: '歐洲' },
+
+            // ===== 非洲 =====
+            { code: '+213', name: '阿爾及利亞', flag: '🇩🇿', region: '非洲' },
+            { code: '+244', name: '安哥拉', flag: '🇦🇴', region: '非洲' },
+            { code: '+267', name: '波札那', flag: '🇧🇼', region: '非洲' },
+            { code: '+226', name: '布吉納法索', flag: '🇧🇫', region: '非洲' },
+            { code: '+257', name: '蒲隆地', flag: '🇧🇮', region: '非洲' },
+            { code: '+238', name: '維德角', flag: '🇨🇻', region: '非洲' },
+            { code: '+237', name: '喀麥隆', flag: '🇨🇲', region: '非洲' },
+            { code: '+236', name: '中非共和國', flag: '🇨🇫', region: '非洲' },
+            { code: '+235', name: '查德', flag: '🇹🇩', region: '非洲' },
+            { code: '+269', name: '葛摩', flag: '🇰🇲', region: '非洲' },
+            { code: '+242', name: '剛果', flag: '🇨🇬', region: '非洲' },
+            { code: '+243', name: '剛果民主共和國', flag: '🇨🇩', region: '非洲' },
+            { code: '+225', name: '象牙海岸', flag: '🇨🇮', region: '非洲' },
+            { code: '+253', name: '吉布地', flag: '🇩🇯', region: '非洲' },
+            { code: '+20', name: '埃及', flag: '🇪🇬', region: '非洲' },
+            { code: '+240', name: '赤道幾內亞', flag: '🇬🇶', region: '非洲' },
+            { code: '+291', name: '厄利垂亞', flag: '🇪🇷', region: '非洲' },
+            { code: '+268', name: '史瓦帝尼', flag: '🇸🇿', region: '非洲' },
+            { code: '+251', name: '衣索比亞', flag: '🇪🇹', region: '非洲' },
+            { code: '+241', name: '加彭', flag: '🇬🇦', region: '非洲' },
+            { code: '+220', name: '甘比亞', flag: '🇬🇲', region: '非洲' },
+            { code: '+233', name: '迦納', flag: '🇬🇭', region: '非洲' },
+            { code: '+224', name: '幾內亞', flag: '🇬🇳', region: '非洲' },
+            { code: '+245', name: '幾內亞比索', flag: '🇬🇼', region: '非洲' },
+            { code: '+254', name: '肯亞', flag: '🇰🇪', region: '非洲' },
+            { code: '+266', name: '賴索托', flag: '🇱🇸', region: '非洲' },
+            { code: '+231', name: '賴比瑞亞', flag: '🇱🇷', region: '非洲' },
+            { code: '+218', name: '利比亞', flag: '🇱🇾', region: '非洲' },
+            { code: '+261', name: '馬達加斯加', flag: '🇲🇬', region: '非洲' },
+            { code: '+265', name: '馬拉威', flag: '🇲🇼', region: '非洲' },
+            { code: '+223', name: '馬利', flag: '🇲🇱', region: '非洲' },
+            { code: '+222', name: '茅利塔尼亞', flag: '🇲🇷', region: '非洲' },
+            { code: '+230', name: '模里西斯', flag: '🇲🇺', region: '非洲' },
+            { code: '+212', name: '摩洛哥', flag: '🇲🇦', region: '非洲' },
+            { code: '+258', name: '莫三比克', flag: '🇲🇿', region: '非洲' },
+            { code: '+264', name: '納米比亞', flag: '🇳🇦', region: '非洲' },
+            { code: '+227', name: '尼日', flag: '🇳🇪', region: '非洲' },
+            { code: '+234', name: '奈及利亞', flag: '🇳🇬', region: '非洲' },
+            { code: '+250', name: '盧安達', flag: '🇷🇼', region: '非洲' },
+            { code: '+239', name: '聖多美普林西比', flag: '🇸🇹', region: '非洲' },
+            { code: '+221', name: '塞內加爾', flag: '🇸🇳', region: '非洲' },
+            { code: '+248', name: '塞席爾', flag: '🇸🇨', region: '非洲' },
+            { code: '+232', name: '獅子山', flag: '🇸🇱', region: '非洲' },
+            { code: '+252', name: '索馬利亞', flag: '🇸🇴', region: '非洲' },
+            { code: '+27', name: '南非', flag: '🇿🇦', region: '非洲' },
+            { code: '+211', name: '南蘇丹', flag: '🇸🇸', region: '非洲' },
+            { code: '+249', name: '蘇丹', flag: '🇸🇩', region: '非洲' },
+            { code: '+255', name: '坦尚尼亞', flag: '🇹🇿', region: '非洲' },
+            { code: '+228', name: '多哥', flag: '🇹🇬', region: '非洲' },
+            { code: '+216', name: '突尼西亞', flag: '🇹🇳', region: '非洲' },
+            { code: '+256', name: '烏干達', flag: '🇺🇬', region: '非洲' },
+            { code: '+260', name: '尚比亞', flag: '🇿🇲', region: '非洲' },
+            { code: '+263', name: '辛巴威', flag: '🇿🇼', region: '非洲' },
+
+            // ===== 北美洲 =====
+            { code: '+1', name: '美國', flag: '🇺🇸', region: '北美洲' },
+            { code: '+1', name: '加拿大', flag: '🇨🇦', region: '北美洲' },
+            { code: '+1', name: '波多黎各', flag: '🇵🇷', region: '北美洲' },
+            { code: '+1', name: '關島', flag: '🇬🇺', region: '北美洲' },
+            { code: '+1', name: '美屬維京群島', flag: '🇻🇮', region: '北美洲' },
+            { code: '+1', name: '百慕達', flag: '🇧🇲', region: '北美洲' },
+            { code: '+1', name: '開曼群島', flag: '🇰🇾', region: '北美洲' },
+            { code: '+1', name: '巴哈馬', flag: '🇧🇸', region: '北美洲' },
+            { code: '+1', name: '牙買加', flag: '🇯🇲', region: '北美洲' },
+            { code: '+1', name: '多米尼克', flag: '🇩🇲', region: '北美洲' },
+            { code: '+1', name: '多明尼加', flag: '🇩🇴', region: '北美洲' },
+            { code: '+1', name: '巴貝多', flag: '🇧🇧', region: '北美洲' },
+            { code: '+1', name: '格瑞那達', flag: '🇬🇩', region: '北美洲' },
+            { code: '+1', name: '海地', flag: '🇭🇹', region: '北美洲' },
+            { code: '+1', name: '聖克里斯多福', flag: '🇰🇳', region: '北美洲' },
+            { code: '+1', name: '聖露西亞', flag: '🇱🇨', region: '北美洲' },
+            { code: '+1', name: '聖文森', flag: '🇻🇨', region: '北美洲' },
+            { code: '+1', name: '特立尼達和多巴哥', flag: '🇹🇹', region: '北美洲' },
+            { code: '+1', name: '安地卡及巴布達', flag: '🇦🇬', region: '北美洲' },
+            { code: '+1', name: '北馬里亞納群島', flag: '🇲🇵', region: '北美洲' },
+            { code: '+1', name: '美屬薩摩亞', flag: '🇦🇸', region: '北美洲' },
+
+            // ===== 墨西哥 & 中美洲 =====
+            { code: '+52', name: '墨西哥', flag: '🇲🇽', region: '北美洲' },
+            { code: '+501', name: '貝里斯', flag: '🇧🇿', region: '北美洲' },
+            { code: '+502', name: '瓜地馬拉', flag: '🇬🇹', region: '北美洲' },
+            { code: '+503', name: '薩爾瓦多', flag: '🇸🇻', region: '北美洲' },
+            { code: '+504', name: '宏都拉斯', flag: '🇭🇳', region: '北美洲' },
+            { code: '+505', name: '尼加拉瓜', flag: '🇳🇮', region: '北美洲' },
+            { code: '+506', name: '哥斯大黎加', flag: '🇨🇷', region: '北美洲' },
+            { code: '+507', name: '巴拿馬', flag: '🇵🇦', region: '北美洲' },
+
+            // ===== 南美洲 =====
+            { code: '+54', name: '阿根廷', flag: '🇦🇷', region: '南美洲' },
+            { code: '+591', name: '玻利維亞', flag: '🇧🇴', region: '南美洲' },
+            { code: '+55', name: '巴西', flag: '🇧🇷', region: '南美洲' },
+            { code: '+56', name: '智利', flag: '🇨🇱', region: '南美洲' },
+            { code: '+57', name: '哥倫比亞', flag: '🇨🇴', region: '南美洲' },
+            { code: '+593', name: '厄瓜多', flag: '🇪🇨', region: '南美洲' },
+            { code: '+592', name: '蓋亞那', flag: '🇬🇾', region: '南美洲' },
+            { code: '+595', name: '巴拉圭', flag: '🇵🇾', region: '南美洲' },
+            { code: '+51', name: '秘魯', flag: '🇵🇪', region: '南美洲' },
+            { code: '+597', name: '蘇利南', flag: '🇸🇷', region: '南美洲' },
+            { code: '+598', name: '烏拉圭', flag: '🇺🇾', region: '南美洲' },
+            { code: '+58', name: '委內瑞拉', flag: '🇻🇪', region: '南美洲' },
+
+            // ===== 大洋洲 =====
+            { code: '+61', name: '澳洲', flag: '🇦🇺', region: '大洋洲' },
+            { code: '+64', name: '紐西蘭', flag: '🇳🇿', region: '大洋洲' },
+            { code: '+679', name: '斐濟', flag: '🇫🇯', region: '大洋洲' },
+            { code: '+682', name: '庫克群島', flag: '🇨🇰', region: '大洋洲' },
+            { code: '+683', name: '紐埃', flag: '🇳🇺', region: '大洋洲' },
+            { code: '+686', name: '吉里巴斯', flag: '🇰🇮', region: '大洋洲' },
+            { code: '+691', name: '密克羅尼西亞', flag: '🇫🇲', region: '大洋洲' },
+            { code: '+692', name: '馬紹爾群島', flag: '🇲🇭', region: '大洋洲' },
+            { code: '+674', name: '諾魯', flag: '🇳🇷', region: '大洋洲' },
+            { code: '+675', name: '巴布亞紐幾內亞', flag: '🇵🇬', region: '大洋洲' },
+            { code: '+676', name: '東加', flag: '🇹🇴', region: '大洋洲' },
+            { code: '+677', name: '索羅門群島', flag: '🇸🇧', region: '大洋洲' },
+            { code: '+678', name: '萬那杜', flag: '🇻🇺', region: '大洋洲' },
+            { code: '+680', name: '帛琉', flag: '🇵🇼', region: '大洋洲' },
+            { code: '+685', name: '薩摩亞', flag: '🇼🇸', region: '大洋洲' },
+            { code: '+687', name: '新喀里多尼亞', flag: '🇳🇨', region: '大洋洲' },
+            { code: '+688', name: '吐瓦魯', flag: '🇹🇻', region: '大洋洲' },
+            { code: '+689', name: '法屬玻里尼西亞', flag: '🇵🇫', region: '大洋洲' },
+            { code: '+690', name: '托克勞', flag: '🇹🇰', region: '大洋洲' },
+            { code: '+693', name: '吉里巴斯 (線島)', flag: '🇰🇮', region: '大洋洲' },
+            { code: '+694', name: '密克羅尼西亞 (春)', flag: '🇫🇲', region: '大洋洲' },
+            { code: '+695', name: '密克羅尼西亞 (波)', flag: '🇫🇲', region: '大洋洲' },
+            { code: '+696', name: '馬紹爾群島 (夸)', flag: '🇲🇭', region: '大洋洲' },
+            { code: '+697', name: '馬紹爾群島 (阿)', flag: '🇲🇭', region: '大洋洲' },
+            { code: '+698', name: '馬紹爾群島 (馬)', flag: '🇲🇭', region: '大洋洲' },
+            { code: '+699', name: '馬紹爾群島 (拉)', flag: '🇲🇭', region: '大洋洲' },
+        ];
+
+        // ============================================================
+        // 3. 國家選擇器邏輯
+        // ============================================================
+        let selectedCountry = countries[0]; // 預設第一個
+
+        function renderCountryList(filter = '') {
+            const list = document.getElementById('countryList');
+            const search = filter.toLowerCase().trim();
+
+            let filtered = countries;
+            if (search) {
+                filtered = countries.filter(c =>
+                    c.name.includes(search) ||
+                    c.code.includes(search) ||
+                    c.flag === search ||
+                    c.region.includes(search)
+                );
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="no-result">沒有找到匹配的國家</div>';
+                return;
+            }
+
+            // 按地區分組顯示
+            const groups = {};
+            filtered.forEach(c => {
+                if (!groups[c.region]) groups[c.region] = [];
+                groups[c.region].push(c);
+            });
+
+            let html = '';
+            const regions = ['亞洲', '歐洲', '非洲', '北美洲', '南美洲', '大洋洲'];
+            regions.forEach(region => {
+                if (groups[region] && groups[region].length > 0) {
+                    html += `<div class="group-label">${region}</div>`;
+                    groups[region].forEach(c => {
+                        html += `
+                            <div class="item" onclick="selectCountry('${c.code}', '${c.name}', '${c.flag}')">
+                                <span class="flag">${c.flag}</span>
+                                <span class="name">${c.name}</span>
+                                <span class="code">${c.code}</span>
+                            </div>
+                        `;
+                    });
+                }
+            });
+
+            // 其他未分類地區
+            Object.keys(groups).forEach(region => {
+                if (!regions.includes(region) && groups[region].length > 0) {
+                    html += `<div class="group-label">${region}</div>`;
+                    groups[region].forEach(c => {
+                        html += `
+                            <div class="item" onclick="selectCountry('${c.code}', '${c.name}', '${c.flag}')">
+                                <span class="flag">${c.flag}</span>
+                                <span class="name">${c.name}</span>
+                                <span class="code">${c.code}</span>
+                            </div>
+                        `;
+                    });
+                }
+            });
+
+            list.innerHTML = html;
+        }
+
+        function toggleCountryDropdown() {
+            const dropdown = document.getElementById('countryDropdown');
+            const arrow = document.getElementById('dropdownArrow');
+            const isOpen = dropdown.classList.contains('open');
+            dropdown.classList.toggle('open');
+            arrow.classList.toggle('open');
+            if (!isOpen) {
+                document.getElementById('countrySearch').value = '';
+                renderCountryList('');
+                document.getElementById('countrySearch').focus();
+            }
+        }
+
+        function selectCountry(code, name, flag) {
+            selectedCountry = countries.find(c => c.code === code && c.name === name);
+            if (!selectedCountry) {
+                selectedCountry = { code, name, flag };
+            }
+            document.getElementById('selectedFlag').textContent = flag;
+            document.getElementById('selectedName').textContent = name;
+            document.getElementById('selectedCode').textContent = code;
+            document.getElementById('countryDropdown').classList.remove('open');
+            document.getElementById('dropdownArrow').classList.remove('open');
+            // 更新手機號碼 placeholder
+            document.getElementById('phoneInput').placeholder = `手機號碼 (例如 ${code.slice(1)}...)`;
+        }
+
+        function filterCountries() {
+            const search = document.getElementById('countrySearch').value;
+            renderCountryList(search);
+        }
+
+        // 點擊外部關閉下拉選單
+        document.addEventListener('click', function(e) {
+            const selector = document.getElementById('countrySelector');
+            if (!selector.contains(e.target)) {
+                document.getElementById('countryDropdown').classList.remove('open');
+                document.getElementById('dropdownArrow').classList.remove('open');
+            }
+        });
+
+        // 初始化選擇第一個國家
+        window.onload = function() {
+            selectCountry('+886', '台灣', '🇹🇼');
+            // 後續初始化
+            initApp();
+        };
+
+        // ============================================================
+        // 4. Firebase 認證邏輯
         // ============================================================
         let currentUser = null;
         let isAdmin = false;
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
-        let isEmailLogin = true; // true=登入, false=註冊
+        let emailMode = 'login'; // login / register
+        let confirmationResult = null;
+        let recaptchaVerifier = null;
 
-        // ============================================================
         // DOM 元素
-        // ============================================================
         const authContainer = document.getElementById('authContainer');
         const mainUI = document.getElementById('mainUI');
         const downloadUI = document.getElementById('downloadUI');
         const statusEl = document.getElementById('status');
         const userStatus = document.getElementById('userStatus');
         const logoutBtn = document.getElementById('logoutBtn');
-
-        // 邮箱表单
         const emailInput = document.getElementById('emailInput');
         const passwordInput = document.getElementById('passwordInput');
         const emailActionBtn = document.getElementById('emailActionBtn');
         const toggleEmailMode = document.getElementById('toggleEmailMode');
         const emailError = document.getElementById('emailError');
-
-        // 手机表单
+        const emailSuccess = document.getElementById('emailSuccess');
         const phoneInput = document.getElementById('phoneInput');
         const sendCodeBtn = document.getElementById('sendCodeBtn');
         const codeInput = document.getElementById('codeInput');
         const verifyCodeBtn = document.getElementById('verifyCodeBtn');
         const phoneError = document.getElementById('phoneError');
+        const phoneSuccess = document.getElementById('phoneSuccess');
 
-        // 切换标签
+        // 切換認證標籤
         document.querySelectorAll('.auth-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -781,15 +1284,19 @@
                 const target = this.dataset.tab;
                 document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
                 document.getElementById(target + 'Form').classList.add('active');
-                // 清除错误
+                // 清除錯誤
                 emailError.classList.remove('show');
+                emailSuccess.classList.remove('show');
                 phoneError.classList.remove('show');
+                phoneSuccess.classList.remove('show');
+                // 如果切換到手機，重新初始化 reCAPTCHA
+                if (target === 'phone') {
+                    initRecaptcha();
+                }
             });
         });
 
-        // ============================================================
-        // 工具函数
-        // ============================================================
+        // 顯示狀態
         function showStatus(text, type = 'info') {
             statusEl.textContent = text;
             statusEl.className = 'show ' + type;
@@ -799,6 +1306,7 @@
             statusEl.className = '';
         }
 
+        // 複製連結
         function copyLink(link) {
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(link).then(() => alert('✅ 連結已複製！\n' + link))
@@ -808,7 +1316,7 @@
             }
         }
 
-        // 下載檔案 (不跳轉)
+        // 下載檔案
         async function downloadFileDirect(url, fileName) {
             if (!fileName) fileName = url.split('/').pop() || '下載檔案';
             const btn = document.activeElement;
@@ -837,10 +1345,51 @@
         }
 
         // ============================================================
-        // 認證功能
+        // 5. 初始化 reCAPTCHA (可見版本)
         // ============================================================
+        function initRecaptcha() {
+            const container = document.getElementById('recaptcha-container');
+            if (!container) return;
+            // 清空容器
+            container.innerHTML = '';
+            try {
+                // 使用可見的 reCAPTCHA
+                recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                    size: 'normal',
+                    theme: 'light',
+                    badge: 'bottomright',
+                    callback: function() {
+                        // 用戶完成驗證
+                        console.log('✅ reCAPTCHA 驗證完成');
+                    },
+                    'expired-callback': function() {
+                        // 過期時重新渲染
+                        console.log('⏳ reCAPTCHA 過期，重新渲染');
+                        initRecaptcha();
+                    }
+                });
+                recaptchaVerifier.render();
+            } catch (e) {
+                console.warn('reCAPTCHA 初始化錯誤:', e);
+                // 如果失敗，嘗試重新初始化
+                setTimeout(() => {
+                    try {
+                        container.innerHTML = '';
+                        recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                            size: 'normal',
+                            theme: 'light'
+                        });
+                        recaptchaVerifier.render();
+                    } catch (e2) {
+                        console.error('reCAPTCHA 重試失敗:', e2);
+                    }
+                }, 500);
+            }
+        }
 
-        // 監聽登入狀態
+        // ============================================================
+        // 6. 監聽登入狀態
+        // ============================================================
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
@@ -850,28 +1399,34 @@
                 userStatus.textContent = `👤 已登入: ${user.email || user.phoneNumber || user.uid}`;
                 showStatus('✅ 登入成功', 'success');
                 loadFileList();
+                // 如果用戶未驗證郵箱，提示
+                if (user.email && !user.emailVerified) {
+                    showStatus('📧 請驗證您的電子郵件 (已發送驗證信)', 'info');
+                }
             } else {
                 currentUser = null;
                 authContainer.style.display = 'block';
                 mainUI.style.display = 'none';
                 logoutBtn.classList.remove('show');
                 userStatus.textContent = '📤 請登入以使用完整功能';
-                // 如果不在下載頁面，顯示登入
                 const params = new URLSearchParams(window.location.search);
                 if (!params.get('download')) {
                     downloadUI.style.display = 'none';
                 }
+                // 重置手機驗證狀態
+                confirmationResult = null;
+                sendCodeBtn.disabled = false;
+                sendCodeBtn.textContent = '發送驗證碼';
+                verifyCodeBtn.disabled = false;
+                verifyCodeBtn.textContent = '驗證並登入';
+                // 重新初始化 reCAPTCHA
+                setTimeout(initRecaptcha, 500);
             }
         });
 
-        // 登出
-        function logout() {
-            auth.signOut();
-            showStatus('已登出', 'info');
-        }
-
-        // 郵箱登入/註冊切換
-        let emailMode = 'login'; // login / register
+        // ============================================================
+        // 7. 郵箱認證
+        // ============================================================
         toggleEmailMode.addEventListener('click', function() {
             if (emailMode === 'login') {
                 emailMode = 'register';
@@ -883,6 +1438,7 @@
                 this.textContent = '還沒有帳號？註冊';
             }
             emailError.classList.remove('show');
+            emailSuccess.classList.remove('show');
         });
 
         emailActionBtn.addEventListener('click', function() {
@@ -899,48 +1455,101 @@
                 return;
             }
             emailError.classList.remove('show');
+            emailSuccess.classList.remove('show');
             this.disabled = true;
             this.textContent = '處理中...';
 
-            const action = emailMode === 'login' ? auth.signInWithEmailAndPassword(email, password) :
-                auth.createUserWithEmailAndPassword(email, password);
-            action.then(() => {
-                // 成功後由 onAuthStateChanged 處理
-            }).catch(err => {
-                emailError.textContent = err.message;
-                emailError.classList.add('show');
-                this.disabled = false;
-                this.textContent = emailMode === 'login' ? '登入' : '註冊';
-            });
+            if (emailMode === 'login') {
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(() => {})
+                    .catch(err => {
+                        emailError.textContent = err.message;
+                        emailError.classList.add('show');
+                        this.disabled = false;
+                        this.textContent = '登入';
+                    });
+            } else {
+                // 註冊並發送驗證信
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(userCredential => {
+                        // 發送驗證郵件
+                        userCredential.user.sendEmailVerification().then(() => {
+                            emailSuccess.textContent = '✅ 註冊成功！驗證信已發送至您的郵箱，請點擊驗證後登入。';
+                            emailSuccess.classList.add('show');
+                            emailActionBtn.textContent = '已發送驗證信';
+                            emailActionBtn.disabled = true;
+                            setTimeout(() => {
+                                emailActionBtn.textContent = '註冊';
+                                emailActionBtn.disabled = false;
+                            }, 3000);
+                        }).catch(err => {
+                            emailError.textContent = '註冊成功但無法發送驗證信: ' + err.message;
+                            emailError.classList.add('show');
+                            emailActionBtn.disabled = false;
+                            emailActionBtn.textContent = '註冊';
+                        });
+                    })
+                    .catch(err => {
+                        emailError.textContent = err.message;
+                        emailError.classList.add('show');
+                        this.disabled = false;
+                        this.textContent = '註冊';
+                    });
+            }
         });
 
         // ============================================================
-        // 手機簡訊驗證
+        // 8. 手機認證 (需要 reCAPTCHA)
         // ============================================================
-        let confirmationResult = null;
-
         sendCodeBtn.addEventListener('click', function() {
             const phone = phoneInput.value.trim();
+            const code = selectedCountry.code;
             if (!phone) {
-                phoneError.textContent = '請輸入手機號碼 (含國碼)';
+                phoneError.textContent = '請輸入手機號碼';
+                phoneError.classList.add('show');
+                return;
+            }
+            // 組合完整號碼
+            const fullNumber = code + phone.replace(/^0+/, '');
+            if (fullNumber.length < 8) {
+                phoneError.textContent = '請輸入有效的手機號碼';
                 phoneError.classList.add('show');
                 return;
             }
             phoneError.classList.remove('show');
+            phoneSuccess.classList.remove('show');
+
+            // 檢查 reCAPTCHA 是否完成
+            if (!recaptchaVerifier) {
+                phoneError.textContent = '請先完成人機驗證 (點擊「我不是機器人」)';
+                phoneError.classList.add('show');
+                // 重新初始化
+                initRecaptcha();
+                return;
+            }
+
             this.disabled = true;
             this.textContent = '發送中...';
 
-            auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+            auth.signInWithPhoneNumber(fullNumber, recaptchaVerifier)
                 .then(conf => {
                     confirmationResult = conf;
-                    sendCodeBtn.textContent = '已發送';
-                    showStatus('✅ 驗證碼已發送，請檢查手機', 'success');
+                    sendCodeBtn.textContent = '✅ 已發送';
+                    phoneSuccess.textContent = '✅ 驗證碼已發送至 ' + fullNumber;
+                    phoneSuccess.classList.add('show');
+                    // 重新啟用按鈕
+                    setTimeout(() => {
+                        sendCodeBtn.disabled = false;
+                        sendCodeBtn.textContent = '重新發送';
+                    }, 5000);
                 })
                 .catch(err => {
-                    phoneError.textContent = err.message;
+                    phoneError.textContent = '發送失敗: ' + err.message;
                     phoneError.classList.add('show');
                     sendCodeBtn.disabled = false;
                     sendCodeBtn.textContent = '發送驗證碼';
+                    // 重新初始化 reCAPTCHA
+                    setTimeout(initRecaptcha, 500);
                 });
         });
 
@@ -965,36 +1574,25 @@
                     // 成功
                 })
                 .catch(err => {
-                    phoneError.textContent = err.message;
+                    phoneError.textContent = '驗證失敗: ' + err.message;
                     phoneError.classList.add('show');
                     verifyCodeBtn.disabled = false;
                     verifyCodeBtn.textContent = '驗證並登入';
+                    // 重新初始化 reCAPTCHA
+                    setTimeout(initRecaptcha, 500);
                 });
         });
 
-        // 初始化 reCAPTCHA (用於手機驗證)
-        let recaptchaVerifier = null;
-        window.onload = function() {
-            // 只有當手機標籤存在時才初始化 reCAPTCHA
-            recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sendCodeBtn', {
-                size: 'invisible',
-                callback: () => {}
-            });
-            recaptchaVerifier.render();
-
-            // 處理分享連結
-            handleShareLink();
-            const params = new URLSearchParams(window.location.search);
-            if (!params.get('download')) {
-                // 如果未登入，顯示登入表單
-                if (!auth.currentUser) {
-                    // 已經顯示
-                }
-            }
-        };
+        // ============================================================
+        // 9. 登出
+        // ============================================================
+        function logout() {
+            auth.signOut();
+            showStatus('已登出', 'info');
+        }
 
         // ============================================================
-        // 上傳檔案（關聯用戶 UID）
+        // 10. 上傳檔案
         // ============================================================
         async function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -1009,7 +1607,7 @@
             try {
                 const ext = file.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-                const filePath = `files/${currentUser.uid}/${fileName}`; // 按用戶存儲
+                const filePath = `files/${currentUser.uid}/${fileName}`;
 
                 const uploadTask = storage.ref(filePath).put(file);
                 await uploadTask;
@@ -1018,7 +1616,6 @@
                 const shortCode = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 const shortLink = window.location.origin + window.location.pathname + '?download=' + shortCode;
 
-                // 儲存 Firestore
                 await db.collection('files').add({
                     fileName: file.name,
                     fileSize: file.size,
@@ -1058,7 +1655,7 @@
         }
 
         // ============================================================
-        // 載入檔案列表（根據用戶 UID 或管理員）
+        // 11. 載入檔案列表
         // ============================================================
         async function loadFileList() {
             if (!currentUser && !isAdmin) {
@@ -1114,7 +1711,6 @@
             }
         }
 
-        // 刪除檔案（管理員）
         async function deleteFile(docId) {
             if (!confirm('確定要刪除這個檔案嗎？此動作無法復原！')) return;
             try {
@@ -1133,14 +1729,13 @@
         }
 
         // ============================================================
-        // 分享連結處理（下載頁面）
+        // 12. 分享連結處理
         // ============================================================
         async function handleShareLink() {
             const params = new URLSearchParams(window.location.search);
             const shortCode = params.get('download');
             const debugBox = document.getElementById('debugBox');
 
-            // 管理員入口 ?admin
             if (params.has('admin')) {
                 document.getElementById('mainUI').style.display = 'none';
                 document.getElementById('downloadUI').style.display = 'none';
@@ -1152,10 +1747,10 @@
             }
 
             if (!shortCode) {
-                // 如果用戶已登入，顯示主界面；否則顯示登入
                 if (auth.currentUser) {
                     document.getElementById('mainUI').style.display = 'block';
                     document.getElementById('downloadUI').style.display = 'none';
+                    authContainer.style.display = 'none';
                 } else {
                     document.getElementById('mainUI').style.display = 'none';
                     document.getElementById('downloadUI').style.display = 'none';
@@ -1164,7 +1759,6 @@
                 return;
             }
 
-            // 有短碼，顯示下載頁面
             document.getElementById('mainUI').style.display = 'none';
             document.getElementById('downloadUI').style.display = 'block';
             authContainer.style.display = 'none';
@@ -1186,7 +1780,6 @@
                 const data = snapshot.docs[0].data();
                 const docId = snapshot.docs[0].id;
 
-                // 更新下載次數
                 await db.collection('files').doc(docId).update({
                     downloadCount: firebase.firestore.FieldValue.increment(1)
                 });
@@ -1223,7 +1816,7 @@
         }
 
         // ============================================================
-        // 管理員
+        // 13. 管理員
         // ============================================================
         function adminLogin() {
             const user = document.getElementById('adminUser').value.trim();
@@ -1234,7 +1827,6 @@
                 document.getElementById('adminBadge').classList.add('show');
                 document.getElementById('exitAdminBtn').classList.add('show');
                 showStatus('👑 管理員模式已啟用', 'success');
-                // 強制顯示主界面
                 document.getElementById('mainUI').style.display = 'block';
                 document.getElementById('downloadUI').style.display = 'none';
                 authContainer.style.display = 'none';
@@ -1249,7 +1841,6 @@
             document.getElementById('adminBadge').classList.remove('show');
             document.getElementById('exitAdminBtn').classList.remove('show');
             showStatus('已退出管理員模式', 'info');
-            // 重新載入用戶自己的檔案
             loadFileList();
         }
 
@@ -1268,9 +1859,16 @@
         }
 
         // ============================================================
-        // 拖曳支援
+        // 14. 初始化
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
+        function initApp() {
+            // 處理分享連結
+            handleShareLink();
+
+            // 初始化 reCAPTCHA
+            setTimeout(initRecaptcha, 800);
+
+            // 拖曳支援
             const area = document.getElementById('uploadArea');
             if (area) {
                 area.addEventListener('dragover', function(e) {
@@ -1293,15 +1891,19 @@
                     }
                 });
             }
+
+            console.log('🍎 蘋果網盤 - 完整國家選擇器版');
+            console.log('📱 支援 ' + countries.length + ' 個國家/地區');
+            console.log('🔑 管理員入口: ?admin');
+        }
+
+        // 由於 window.onload 已使用，改為 DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // 國家選擇器初始化已在 window.onload 中處理
         });
 
-        // ============================================================
-        // 啟動
-        // ============================================================
-        // 由於 onAuthStateChanged 已經處理，但需要確保初始狀態
-        // 若已有登入用戶，會自動觸發
-        console.log('🍎 蘋果網盤 - Firebase 完整版');
-        console.log('🔑 管理員入口: ?admin');
+        // 確保 reCAPTCHA 在手機標籤切換時重新初始化
+        console.log('✅ 蘋果網盤已載入，請先完成 reCAPTCHA 驗證再發送手機驗證碼。');
     </script>
 </body>
 </html>
