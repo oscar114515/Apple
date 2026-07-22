@@ -14,7 +14,6 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
     <style>
-        /* ===== 样式同之前，省略（与上一版本一致） ===== */
         * {
             margin: 0;
             padding: 0;
@@ -862,39 +861,21 @@
         }
 
         // ============================================================
-        // 🔥 上傳檔案（修復版，增強錯誤處理）
+        // 🔥 上傳檔案 - 最簡穩定版
         // ============================================================
         async function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // 檢查登入狀態
             if (!currentUser) {
                 alert('請先登入');
                 return;
             }
 
-            // 顯示上傳中狀態
             const uploadArea = document.getElementById('uploadArea');
-            const statusText = document.getElementById('status');
             showStatus('⏳ 上傳中...', 'info');
             uploadArea.style.opacity = '0.6';
-            // 禁用上傳區域（防止重複點擊）
             uploadArea.style.pointerEvents = 'none';
-
-            // 設定超時（60秒後自動失敗）
-            const timeoutId = setTimeout(() => {
-                showStatus('❌ 上傳逾時，請檢查網路後重試', 'error');
-                uploadArea.style.opacity = '1';
-                uploadArea.style.pointerEvents = 'auto';
-                // 恢復上傳區域文字
-                uploadArea.innerHTML = `
-                    <span class="icon">📤</span>
-                    <p>點擊或拖曳上傳檔案</p>
-                    <div class="hint">所有檔案類型 · 無大小限制</div>
-                `;
-                document.getElementById('fileInput').value = '';
-            }, 60000); // 60 秒逾時
 
             try {
                 // 1. 生成檔案路徑
@@ -903,45 +884,20 @@
                 const filePath = `files/${currentUser.uid}/${fileName}`;
                 console.log('📁 上傳路徑:', filePath);
 
-                // 2. 上傳到 Storage
-                const uploadTask = storage.ref(filePath).put(file);
+                // 2. 建立 Storage 引用並上傳（直接等待）
+                const storageRef = storage.ref(filePath);
+                await storageRef.put(file);
+                console.log('✅ 上傳完成');
 
-                // 監聽上傳進度（可選）
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        console.log(`⏳ 上傳進度: ${Math.round(progress)}%`);
-                        showStatus(`⏳ 上傳中 ${Math.round(progress)}%`, 'info');
-                    },
-                    (error) => {
-                        // 上傳失敗
-                        clearTimeout(timeoutId);
-                        console.error('❌ Storage 上傳錯誤:', error);
-                        showStatus('❌ 上傳失敗: ' + error.message, 'error');
-                        uploadArea.style.opacity = '1';
-                        uploadArea.style.pointerEvents = 'auto';
-                        uploadArea.innerHTML = `
-                            <span class="icon">📤</span>
-                            <p>點擊或拖曳上傳檔案</p>
-                            <div class="hint">所有檔案類型 · 無大小限制</div>
-                        `;
-                        document.getElementById('fileInput').value = '';
-                        throw error; // 拋出以便外層 catch
-                    }
-                );
-
-                // 等待上傳完成
-                await uploadTask;
-
-                // 取得下載 URL
-                const downloadURL = await storage.ref(filePath).getDownloadURL();
+                // 3. 取得下載網址
+                const downloadURL = await storageRef.getDownloadURL();
                 console.log('✅ 下載 URL:', downloadURL);
 
-                // 3. 產生短碼
+                // 4. 產生短碼
                 const shortCode = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 const shortLink = window.location.origin + window.location.pathname + '?download=' + shortCode;
 
-                // 4. 寫入 Firestore
+                // 5. 寫入 Firestore
                 await db.collection('files').add({
                     fileName: file.name,
                     fileSize: file.size,
@@ -954,10 +910,7 @@
                     downloadCount: 0
                 });
 
-                // 清除超時
-                clearTimeout(timeoutId);
-
-                // 5. 更新 UI
+                // 6. 更新 UI
                 lastUploaded = { fileName: file.name, fileSize: file.size, downloadURL, shortLink };
                 const sizeMB = (file.size / 1024 / 1024).toFixed(1);
                 document.getElementById('successFileName').textContent = file.name;
@@ -967,30 +920,12 @@
                 showStatus('✅ 上傳成功！', 'success');
                 loadFileList();
 
-                // 恢復上傳區域
-                uploadArea.style.opacity = '1';
-                uploadArea.style.pointerEvents = 'auto';
-                document.getElementById('fileInput').value = '';
-
             } catch (err) {
-                // 任何錯誤都會被捕獲
-                clearTimeout(timeoutId);
                 console.error('❌ 上傳錯誤:', err);
-                // 如果狀態尚未顯示錯誤，則顯示通用錯誤
-                if (statusEl.textContent === '⏳ 上傳中...' || statusEl.textContent.includes('⏳ 上傳中')) {
-                    showStatus('❌ 上傳失敗: ' + (err.message || '未知錯誤，請查看控制台'), 'error');
-                }
-                // 恢復上傳區域
+                showStatus('❌ 上傳失敗: ' + (err.message || '未知錯誤'), 'error');
+            } finally {
                 uploadArea.style.opacity = '1';
                 uploadArea.style.pointerEvents = 'auto';
-                // 恢復上傳區域文字（如果被修改）
-                if (uploadArea.querySelector('.icon') === null) {
-                    uploadArea.innerHTML = `
-                        <span class="icon">📤</span>
-                        <p>點擊或拖曳上傳檔案</p>
-                        <div class="hint">所有檔案類型 · 無大小限制</div>
-                    `;
-                }
                 document.getElementById('fileInput').value = '';
             }
         }
@@ -1238,7 +1173,7 @@
                 });
             }
 
-            console.log('🍎 蘋果網盤 - 上傳修復版');
+            console.log('🍎 蘋果網盤 - 完整穩定版');
             console.log('🔑 管理員入口: ?admin');
         }
 
