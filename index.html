@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>🍎 苹果网盘</title>
+    <title>☁️ 輕盤 · 即傳即用</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js">
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
     <style>
         /* ============================================================
-                   白色风格 · 无敌雷霆精美 UI
-                   ============================================================ */
+           全域重置 + 導航欄
+           ============================================================ */
         * {
             margin: 0;
             padding: 0;
@@ -18,28 +25,155 @@
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #f4f6fa;
-            min-height: 100vh;
+            background-color: #f0f2f5;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang HK', 'Microsoft JhengHei', sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 32px 20px;
-            color: #1a1a2e;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-top: 80px;
         }
 
+        /* ===== 導航欄 ===== */
+        .navbar-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transform: translateY(-100%);
+            animation: slideDown 0.5s ease-out forwards;
+            z-index: 4000;
+        }
+
+        @keyframes slideDown {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(0); }
+        }
+
+        .navbar {
+            background-color: #f8f9fa;
+            padding: 0.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+        }
+
+        .logo a {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+            display: block;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .avatar-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            background: white;
+            padding: 0;
+            overflow: hidden;
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .avatar-btn:hover {
+            border-color: #007bff;
+        }
+
+        .avatar-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .avatar-btn .default-avatar {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e6edf8;
+            color: #2c4a7a;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .auth-link {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid #007bff;
+            transition: all 0.2s ease;
+            background: transparent;
+        }
+
+        .auth-link:hover {
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+        }
+
+        .auth-link.logout {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .auth-link.logout:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* ============================================================
+           輕盤主內容
+           ============================================================ */
         .app {
             max-width: 820px;
             width: 100%;
             background: #ffffff;
             border-radius: 40px;
             padding: 32px 36px 40px;
+            margin: 20px auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.02);
             transition: all 0.2s;
             position: relative;
         }
 
-        /* ----- 顶部 ----- */
         .topbar {
             display: flex;
             align-items: center;
@@ -49,7 +183,7 @@
             gap: 12px;
         }
 
-        .logo {
+        .logo-text {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -58,14 +192,14 @@
             letter-spacing: -0.3px;
             color: #0b0b1a;
         }
-        .logo i {
+        .logo-text i {
             font-size: 28px;
             color: #1e5ef7;
             background: linear-gradient(145deg, #1e5ef7, #3b7cff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .logo span {
+        .logo-text span {
             background: linear-gradient(145deg, #0b0b1a, #2d3342);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -111,7 +245,6 @@
             display: inline-block;
         }
 
-        /* 隐藏管理按钮（右上角小圆点） */
         #adminSecretBtn {
             width: 28px;
             height: 28px;
@@ -140,7 +273,6 @@
             letter-spacing: 0.2px;
         }
 
-        /* ----- 状态信息 ----- */
         #status {
             padding: 12px 18px;
             border-radius: 16px;
@@ -171,7 +303,6 @@
             border-color: #c5d9f5;
         }
 
-        /* ----- 上传区（精美卡片） ----- */
         .upload-card {
             background: #fafcff;
             border: 2px dashed #dce3ec;
@@ -213,7 +344,6 @@
             display: none;
         }
 
-        /* ----- 上传成功卡片 ----- */
         .upload-success {
             background: #ecfdf3;
             border-radius: 24px;
@@ -278,7 +408,6 @@
             background: #f1f4f9;
         }
 
-        /* ----- 文件列表 ----- */
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -348,6 +477,15 @@
             gap: 4px 12px;
             margin-top: 2px;
         }
+        .file-item .info .uploader-name {
+            font-weight: 500;
+            color: #1e5ef7;
+            background: #eef4fe;
+            padding: 0 10px;
+            border-radius: 30px;
+            display: inline-block;
+            font-size: 11px;
+        }
         .file-item .info .short-link {
             font-size: 12px;
             color: #1e5ef7;
@@ -398,7 +536,7 @@
             font-size: 15px;
         }
 
-        /* ----- 下載頁面（分享鏈接） ----- */
+        /* ===== 下載頁面 ===== */
         .download-page {
             text-align: center;
             padding: 40px 20px 20px;
@@ -417,6 +555,15 @@
             color: #8a98aa;
             font-size: 15px;
             margin-bottom: 24px;
+        }
+        .download-page .uploader-info {
+            color: #1e5ef7;
+            font-size: 14px;
+            margin-bottom: 20px;
+            background: #f0f7ff;
+            padding: 8px 20px;
+            border-radius: 40px;
+            display: inline-block;
         }
         .download-page .btn-download-big {
             background: #1e5ef7;
@@ -449,7 +596,6 @@
             border-bottom-color: #1e5ef7;
         }
 
-        /* ----- 診斷框（低調） ----- */
         .debug-box {
             background: #f4f6fa;
             border-radius: 14px;
@@ -483,7 +629,7 @@
             color: #1a5bbf;
         }
 
-        /* ----- 管理員登入模態框（純白） ----- */
+        /* ===== 管理員登入模態框 ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -568,13 +714,396 @@
             background: #f1f4f9;
         }
 
-        /* ----- 響應式 ----- */
+        /* ===== 登入彈窗 ===== */
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+        }
+        .auth-modal-box {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .auth-modal-box .brand {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .auth-modal-box .brand h2 {
+            font-weight: 500;
+            font-size: 1.8rem;
+            color: #111;
+        }
+        .auth-modal-box .tab-switch {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 3rem;
+            padding: 0.3rem;
+            margin-bottom: 1.5rem;
+            gap: 0.25rem;
+        }
+        .auth-modal-box .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.6rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 2.5rem;
+            background: transparent;
+            border: none;
+            color: #5c5c5c;
+            cursor: pointer;
+        }
+        .auth-modal-box .tab-btn.active {
+            background: #ffffff;
+            color: #0a0a0a;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+        .auth-modal-box .form-panel {
+            display: block;
+        }
+        .auth-modal-box .form-panel.hidden {
+            display: none;
+        }
+        .auth-modal-box .input-group {
+            margin-bottom: 1rem;
+        }
+        .auth-modal-box .input-field {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .auth-modal-box .input-field:focus {
+            border-color: #b0b0b0;
+        }
+        .auth-modal-box .action-btn {
+            width: 100%;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .auth-modal-box .action-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+        .auth-modal-box .action-btn.danger {
+            background: #dc3545;
+        }
+        .auth-modal-box .google-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            font-weight: 500;
+            color: #2d2d2d;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .auth-modal-box .google-btn:hover {
+            background: #f5f5f5;
+        }
+        .auth-modal-box .google-btn svg {
+            flex-shrink: 0;
+        }
+        .auth-modal-box .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.2rem 0;
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+        .auth-modal-box .divider::before,
+        .auth-modal-box .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #eee;
+        }
+        .auth-modal-box .divider span {
+            margin: 0 1rem;
+        }
+        .auth-modal-box .message-box {
+            text-align: center;
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            border-radius: 2rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .auth-modal-box .message-success {
+            color: #065f46;
+            background: #f0fdf6;
+            border: 1px solid #d1fae5;
+            display: block;
+        }
+        .auth-modal-box .message-error {
+            color: #991b1b;
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            display: block;
+        }
+        .auth-modal-box .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            border-top: 2px solid #1a1a1a;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+        }
+        .auth-modal-box .admin-btn-small {
+            margin-top: 0.8rem;
+            background: transparent;
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem;
+            border-radius: 1rem;
+            width: 100%;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        /* ===== 用戶管理彈窗 ===== */
+        .admin-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 6000;
+        }
+        .admin-modal-overlay.show {
+            display: flex;
+        }
+        .admin-modal-box {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .admin-modal-box h3 {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #111;
+        }
+        .admin-modal-box .modal-close {
+            float: right;
+            background: #f5f5f5;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 0.8rem;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #6b7280;
+        }
+        .admin-modal-box .modal-close:hover {
+            background: #e5e7eb;
+        }
+        .admin-modal-box table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .admin-modal-box th,
+        .admin-modal-box td {
+            padding: 0.7rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .admin-modal-box th {
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+        .admin-modal-box .delete-user-btn {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 0.3rem 0.7rem;
+            border-radius: 0.6rem;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* ===== 加載中彈窗 ===== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loading-box {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem 2.5rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.25s ease;
+            min-width: 180px;
+        }
+        .loading-spinner-full {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        .loading-box p {
+            color: #333;
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* ===== 聯繫我們彈窗 ===== */
+        .modal-overlay-contact {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            cursor: pointer;
+        }
+        .modal-box-contact {
+            background-color: white;
+            padding: 30px 35px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 340px;
+            width: 90%;
+            cursor: default;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-box-contact .title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 16px;
+        }
+        .modal-box-contact .divider {
+            height: 1px;
+            background: #e8ecf0;
+            margin: 14px 0;
+        }
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .qq-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .qq-number {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 2px;
+        }
+        .qq-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .platform-grid-small {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .platform-btn-small {
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            border: 1px solid #dce3ed;
+            border-radius: 40px;
+            background: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #1a1a1a;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.15s;
+            font-family: sans-serif;
+        }
+        .platform-btn-small:active {
+            background: #f0f0f0;
+            transform: scale(0.97);
+        }
+        .platform-btn-small.bili { color: #00a1d6; }
+        .platform-btn-small.xhs { color: #ff2442; }
+        .platform-btn-small.douyin { color: #000000; }
+        .platform-btn-small.yt { color: #ff0000; }
+
+        /* ===== 響應式 ===== */
         @media (max-width: 600px) {
             .app {
                 padding: 20px 16px 28px;
                 border-radius: 28px;
             }
-            .logo {
+            .logo-text {
                 font-size: 20px;
             }
             .upload-card {
@@ -593,17 +1122,89 @@
             .modal-box {
                 padding: 28px 20px;
             }
+            .auth-modal-box {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            .nav-right {
+                gap: 0.8rem;
+            }
+            .nav-links {
+                gap: 1rem;
+            }
+            .loading-box {
+                padding: 1.5rem 1.5rem;
+                min-width: 140px;
+            }
+            .loading-spinner-full {
+                width: 32px;
+                height: 32px;
+            }
+            .modal-box-contact {
+                padding: 24px 20px;
+                max-width: 300px;
+            }
+            .platform-grid-small {
+                gap: 8px;
+            }
+            .platform-btn-small {
+                padding: 10px 0;
+                font-size: 0.85rem;
+            }
+            .qq-number {
+                font-size: 1.3rem;
+            }
+            .qq-icon {
+                width: 50px;
+                height: 50px;
+            }
+        }
+        @media (max-width: 480px) {
+            .loading-box {
+                padding: 1.2rem 1.2rem;
+                min-width: 120px;
+            }
+            .loading-spinner-full {
+                width: 28px;
+                height: 28px;
+            }
+            .loading-box p {
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- ===== 導航欄 ===== -->
+    <div class="navbar-wrapper">
+        <nav class="navbar">
+            <div class="logo">
+                <a href="#"><img src="https://i.postimg.cc/HxVC7TcN/IMG-8863.png" alt="Logo"></a>
+            </div>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="#" id="authNavLink" class="auth-link">登入</a></li>
+                    <li>
+                        <button class="avatar-btn" id="avatarBtn">
+                            <div class="default-avatar" id="avatarPlaceholder">👤</div>
+                            <img id="avatarImg" style="display:none;" alt="頭像">
+                        </button>
+                    </li>
+                    <li><a href="#" id="contactBtn">聯繫我們</a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ===== 輕盤主內容 ===== -->
     <div class="app" id="app">
 
-        <!-- ========== 頂欄 ========== -->
+        <!-- 頂欄 -->
         <div class="topbar">
-            <div class="logo">
-                <i class="logo-icon">🍎</i>
-                <span>蘋果網盤</span>
+            <div class="logo-text">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>輕盤</span>
             </div>
             <div class="topbar-actions">
                 <span class="admin-badge" id="adminBadge">👑 管理員</span>
@@ -611,12 +1212,12 @@
                 <button id="adminSecretBtn" onclick="adminSecretClick()" aria-label="管理入口">⋅⋅⋅</button>
             </div>
         </div>
-        <div class="subtitle">📤 完全公開 · 無需登入 · 即傳即用</div>
+        <div class="subtitle">📤 公開分享 · 登入後上傳 · 即傳即用</div>
 
-        <!-- ========== 狀態 ========== -->
+        <!-- 狀態 -->
         <div id="status"></div>
 
-        <!-- ========== 主界面 ========== -->
+        <!-- 主界面 -->
         <div id="mainUI">
 
             <!-- 上傳區 -->
@@ -642,19 +1243,20 @@
 
             <!-- 檔案列表 -->
             <div class="list-header">
-                <div class="file-count" id="fileCount">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
+                <div class="file-count">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
             </div>
             <div id="fileList">
                 <div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>
             </div>
         </div>
 
-        <!-- ========== 下載頁面 ========== -->
+        <!-- 下載頁面 -->
         <div id="downloadUI" style="display:none;">
             <div class="download-page">
                 <div class="big-icon" id="downloadIcon">📄</div>
                 <h2 id="downloadFileName">檔案名稱</h2>
                 <div class="meta" id="downloadFileMeta">大小 · 公開分享</div>
+                <div class="uploader-info" id="downloadUploader">👤 上傳者：<span id="downloadUploaderName">未知</span></div>
                 <button class="btn-download-big" id="directDownloadBtn" onclick="directDownload()">⬇️ 立即下載</button>
                 <div style="margin-top:8px; font-size:13px; color:#9aabbe;">⚡ 全速下載 · 無需登入</div>
                 <div id="debugBox" class="debug-box"></div>
@@ -663,7 +1265,7 @@
         </div>
     </div>
 
-    <!-- ========== 管理員登入模態框 ========== -->
+    <!-- ===== 管理員登入模態框 ===== -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
             <h2>🔐 管理員登入</h2>
@@ -676,10 +1278,115 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
+    <!-- ===== 登入彈窗 ===== -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal-box">
+            <div class="brand"><h2>歡迎你的使用</h2></div>
+            <div id="authLoggedInPanel" style="display:none;text-align:center;padding:1rem 0;">
+                <p style="font-weight:500;margin-bottom:0.3rem;" id="authDisplayName"></p>
+                <p style="font-size:0.85rem;color:#6b7280;margin-bottom:1rem;" id="authDisplayEmail"></p>
+                <button class="action-btn danger" id="authLogoutBtn">登出</button>
+                <button class="admin-btn-small" id="authAdminBtn"><i class="fas fa-table"></i> 用戶管理</button>
+            </div>
+            <div id="authPanel">
+                <div class="tab-switch">
+                    <button class="tab-btn active" id="loginTabBtn">登錄</button>
+                    <button class="tab-btn" id="registerTabBtn">註冊</button>
+                </div>
+                <div id="loginPanel" class="form-panel">
+                    <div id="loginMessage" class="message-box"></div>
+                    <div class="input-group"><input type="text" id="loginName" class="input-field" placeholder="姓名"></div>
+                    <div class="input-group"><input type="password" id="loginPassword" class="input-field" placeholder="密碼"></div>
+                    <button class="action-btn" id="loginSubmitBtn">登入</button>
+                    <div class="divider"><span>或</span></div>
+                    <button class="google-btn" id="googleLoginBtn">
+                        <svg width="20" height="20" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        使用 Google 登入
+                    </button>
+                </div>
+                <div id="registerPanel" class="form-panel hidden">
+                    <div id="registerMessage" class="message-box"></div>
+                    <div class="input-group"><input type="text" id="regName" class="input-field" placeholder="姓名"></div>
+                    <div class="input-group"><input type="password" id="regPassword" class="input-field" placeholder="設定密碼 (至少4位)"></div>
+                    <div class="input-group"><input type="password" id="regConfirmPassword" class="input-field" placeholder="確認密碼"></div>
+                    <button class="action-btn" id="registerSubmitBtn">註冊</button>
+                    <div class="divider"><span>或</span></div>
+                    <button class="google-btn" id="googleRegisterBtn">
+                        <svg width="20" height="20" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        使用 Google 註冊
+                    </button>
+                </div>
+            </div>
+            <div style="margin-top:0.8rem;font-size:0.7rem;color:#aaa;text-align:center;">☁️ Firebase 雲端 · 跨設備同步</div>
+        </div>
+    </div>
+
+    <!-- ===== 用戶管理彈窗 ===== -->
+    <div class="admin-modal-overlay" id="adminModalUsers">
+        <div class="admin-modal-box">
+            <button class="modal-close" id="closeAdminModalUsers"><i class="fas fa-times"></i></button>
+            <h3><i class="fas fa-users"></i> 用戶管理</h3>
+            <div id="userTableContainer"><p style="text-align:center;color:#6b7280;padding:2rem;">載入中...</p></div>
+        </div>
+    </div>
+
+    <!-- ===== 加載中彈窗 ===== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-box">
+            <div class="loading-spinner-full"></div>
+            <p id="loadingText">載入中...</p>
+        </div>
+    </div>
+
+    <!-- ===== 聯繫我們彈窗 ===== -->
+    <div class="modal-overlay-contact" id="contactModal">
+        <div class="modal-box-contact" onclick="event.stopPropagation()">
+            <div class="contact-info">
+                <img src="https://i.postimg.cc/Z520m4jx/e1fb8ec8ae1db1ac50505adac82398e4.jpg" class="qq-icon">
+                <div class="qq-label">QQ</div>
+                <span class="qq-number">1962487792</span>
+            </div>
+            <div class="divider"></div>
+            <div class="title">📱 追蹤我</div>
+            <div class="platform-grid-small">
+                <button class="platform-btn-small bili" onclick="window.open('https://space.bilibili.com/3632309945239723','_blank')">嗶哩嗶哩</button>
+                <button class="platform-btn-small xhs" onclick="window.open('https://xhslink.com/m/5aECPzZiqGQ','_blank')">小紅書</button>
+                <button class="platform-btn-small douyin" onclick="window.open('https://v.douyin.com/HDdZvMmGXwU/','_blank')">抖音</button>
+                <button class="platform-btn-small yt" onclick="window.open('https://www.youtube.com/@%E6%A2%81%E5%96%86%E5%90%8C%E5%AD%B8','_blank')">YouTube</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="avatarCanvas" width="420" height="420" style="display:none;"></canvas>
+
     <script>
         // ============================================================
-        // 1. Supabase 設定
+        // 1. Firebase 配置（舊專案：登入認證 + 用戶管理）
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkJhI7FwrRNlNhPn9tp9w_aTKj--SUg7I",
+            authDomain: "oscar-io-log-in.firebaseapp.com",
+            projectId: "oscar-io-log-in",
+            storageBucket: "oscar-io-log-in.firebasestorage.app",
+            messagingSenderId: "51821788083",
+            appId: "1:51821788083:web:bf9461f4fa3fd2bc07e9c6"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // ============================================================
+        // 2. Supabase 配置（檔案儲存）
         // ============================================================
         const SUPABASE_URL = 'https://mpygxmnugiknpqlkzczm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_JHvmzxxmPDCyP7PH9eYtzQ_GWOBVHPS';
@@ -692,57 +1399,338 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ============================================================
-        // 2. 狀態
+        // 3. 加載彈窗控制
+        // ============================================================
+        let loadingTimer = null;
+
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text || '載入中...';
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideLoading() {
+            if (loadingTimer) return;
+            loadingTimer = setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                loadingTimer = null;
+            }, 500);
+        }
+
+        // ============================================================
+        // 4. 頭像與 UI 控制
+        // ============================================================
+        const authNavLink = document.getElementById('authNavLink');
+        const avatarBtn = document.getElementById('avatarBtn');
+        const avatarImg = document.getElementById('avatarImg');
+        const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+
+        const authModal = document.getElementById('authModal');
+        const authPanel = document.getElementById('authPanel');
+        const authLoggedInPanel = document.getElementById('authLoggedInPanel');
+        const authDisplayName = document.getElementById('authDisplayName');
+        const authDisplayEmail = document.getElementById('authDisplayEmail');
+        const authLogoutBtn = document.getElementById('authLogoutBtn');
+        const authAdminBtn = document.getElementById('authAdminBtn');
+
+        const loginTabBtn = document.getElementById('loginTabBtn');
+        const registerTabBtn = document.getElementById('registerTabBtn');
+        const loginPanel = document.getElementById('loginPanel');
+        const registerPanel = document.getElementById('registerPanel');
+        const loginName = document.getElementById('loginName');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginSubmit = document.getElementById('loginSubmitBtn');
+        const loginMessage = document.getElementById('loginMessage');
+        const regName = document.getElementById('regName');
+        const regPassword = document.getElementById('regPassword');
+        const regConfirmPassword = document.getElementById('regConfirmPassword');
+        const registerSubmit = document.getElementById('registerSubmitBtn');
+        const registerMessage = document.getElementById('registerMessage');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const googleRegisterBtn = document.getElementById('googleRegisterBtn');
+
+        const adminModalUsers = document.getElementById('adminModalUsers');
+        const closeAdminModalUsers = document.getElementById('closeAdminModalUsers');
+        const userTableContainer = document.getElementById('userTableContainer');
+        const avatarCanvas = document.getElementById('avatarCanvas');
+        const avatarCtx = avatarCanvas.getContext('2d');
+
+        function isAdminUser(user) {
+            if (!user) return false;
+            return user.email === 'oscarmtr114514@gmail.com';
+        }
+
+        function generateIdenticon(name) {
+            const seed = name || 'default';
+            const encoder = new TextEncoder();
+            const data = encoder.encode(seed);
+            let hash = BigInt('0xcbf29ce484222325');
+            const prime = BigInt('0x100000001b3');
+            for (let i = 0; i < data.length; i++) {
+                hash ^= BigInt(data[i]);
+                hash = (hash * prime) & BigInt('0xffffffffffffffff');
+            }
+            const bytes = new Uint8Array(8);
+            for (let i = 0; i < 8; i++) bytes[7 - i] = Number((hash >> BigInt(i * 8)) & BigInt(0xff));
+            const hue = (bytes[0] * 256 + bytes[1]) % 360;
+            const sat = 70 + (bytes[2] % 20);
+            const lig = 55 + (bytes[0] % 20);
+            const bits = [];
+            let bi = 3,
+                bj = 0;
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) {
+                    if (c < 3) {
+                        const b = bytes[bi] || 0;
+                        bits.push(((b >> (7 - bj)) & 1) === 1);
+                        bj++;
+                        if (bj >= 8) { bj = 0;
+                            bi++; }
+                    } else {
+                        bits.push(bits[r * 3 + (4 - c)] || false);
+                    }
+                }
+            }
+            avatarCtx.clearRect(0, 0, 420, 420);
+            avatarCtx.fillStyle = '#f5f5f5';
+            avatarCtx.fillRect(0, 0, 420, 420);
+            avatarCtx.fillStyle = `hsl(${hue}, ${sat}%, ${lig}%)`;
+            for (let r = 0; r < 5; r++)
+                for (let c = 0; c < 5; c++)
+                    if (bits[r * 5 + c]) avatarCtx.fillRect(c * 84, r * 84, 84, 84);
+            return avatarCanvas.toDataURL('image/png');
+        }
+
+        function updateAvatar(photoUrl, name) {
+            if (photoUrl && photoUrl.startsWith('http')) {
+                avatarImg.src = photoUrl;
+                avatarImg.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+            } else {
+                avatarImg.src = generateIdenticon(name || 'default');
+                avatarImg.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+            }
+        }
+
+        function showMsg(el, text, type) {
+            el.textContent = text;
+            el.className = 'message-box message-' + type;
+            setTimeout(() => { el.className = 'message-box';
+                el.textContent = ''; }, 4000);
+        }
+
+        function switchToLogin() {
+            loginPanel.classList.remove('hidden');
+            registerPanel.classList.add('hidden');
+            loginTabBtn.classList.add('active');
+            registerTabBtn.classList.remove('active');
+        }
+
+        function switchToRegister() {
+            registerPanel.classList.remove('hidden');
+            loginPanel.classList.add('hidden');
+            registerTabBtn.classList.add('active');
+            loginTabBtn.classList.remove('active');
+        }
+
+        function showUI(user) {
+            authNavLink.textContent = '登出';
+            authNavLink.className = 'auth-link logout';
+            authNavLink.removeEventListener('click', openAuthModal);
+            authNavLink.removeEventListener('click', handleLogout);
+            authNavLink.addEventListener('click', handleLogout);
+            updateAvatar(user.photoURL, user.displayName);
+            authPanel.style.display = 'none';
+            authLoggedInPanel.style.display = 'block';
+            authDisplayName.textContent = user.displayName || '使用者';
+            authDisplayEmail.textContent = user.email || '';
+            if (isAdminUser(user)) {
+                authAdminBtn.style.display = 'block';
+            } else {
+                authAdminBtn.style.display = 'none';
+            }
+            localStorage.setItem('currentUser', JSON.stringify({
+                name: user.displayName,
+                email: user.email,
+                photo: user.photoURL,
+                uid: user.uid
+            }));
+            hideLoading();
+            // 登入後重新載入檔案列表（顯示上傳者名稱）
+            loadFileList();
+        }
+
+        function hideUI() {
+            authNavLink.textContent = '登入';
+            authNavLink.className = 'auth-link';
+            authNavLink.removeEventListener('click', openAuthModal);
+            authNavLink.removeEventListener('click', handleLogout);
+            authNavLink.addEventListener('click', openAuthModal);
+            avatarImg.style.display = 'none';
+            avatarPlaceholder.style.display = 'flex';
+            authPanel.style.display = 'block';
+            authLoggedInPanel.style.display = 'none';
+            localStorage.removeItem('currentUser');
+            hideLoading();
+            // 登出後重新載入檔案列表
+            loadFileList();
+        }
+
+        function openAuthModal() {
+            authModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAuthModal() {
+            authModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function openAdminModalFn() {
+            adminModalUsers.classList.add('show');
+            loadUserTable();
+        }
+
+        function closeAdminModalFn() {
+            adminModalUsers.classList.remove('show');
+        }
+
+        // ============================================================
+        // 5. Firebase 認證
+        // ============================================================
+        async function googleLogin() {
+            showLoading('Google 登入中...');
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const u = result.user;
+                await db.ref('users/' + u.uid).set({
+                    name: u.displayName,
+                    email: u.email,
+                    photo: u.photoURL,
+                    lastLogin: Date.now()
+                });
+                showUI(u);
+                closeAuthModal();
+            } catch (e) {
+                hideLoading();
+                if (e.code !== 'auth/popup-closed-by-user') {
+                    showMsg(loginMessage, 'Google 登入失敗：' + e.message, 'error');
+                }
+            }
+        }
+
+        async function handleRegister() {
+            googleLogin();
+        }
+
+        async function handleLogin() {
+            googleLogin();
+        }
+
+        function handleLogout() {
+            showLoading('登出中...');
+            auth.signOut().catch(() => {});
+            hideUI();
+        }
+
+        // ============================================================
+        // 6. 用戶管理（舊 Firebase）
+        // ============================================================
+        let allUsers = [];
+
+        async function loadUserTable() {
+            userTableContainer.innerHTML = '<p style="text-align:center;color:#6b7280;padding:2rem;">載入中...</p>';
+            try {
+                const snap = await db.ref('users').once('value');
+                const data = snap.val();
+                if (!data) {
+                    userTableContainer.innerHTML = '<p style="text-align:center;color:#6b7280;padding:2rem;">沒有任何用戶</p>';
+                    return;
+                }
+                let html =
+                    `<table><thead><tr><th>姓名</th><th>Email</th><th>操作</th></tr></thead><tbody>`;
+                for (const [uid, userData] of Object.entries(data)) {
+                    html += `<tr>
+                        <td>${userData.name || '-'}</td>
+                        <td>${userData.email || '-'}</td>
+                        <td><button class="delete-user-btn" onclick="window._deleteUser('${uid}')"><i class="fas fa-trash"></i> 刪除</button></td>
+                    </tr>`;
+                }
+                html += '</tbody></table>';
+                userTableContainer.innerHTML = html;
+            } catch (e) {
+                userTableContainer.innerHTML = '<p style="text-align:center;color:#dc2626;padding:2rem;">載入失敗</p>';
+            }
+        }
+
+        window._deleteUser = async function(uid) {
+            if (!confirm('確定要刪除此用戶嗎？此操作無法撤銷。')) return;
+            try {
+                await db.ref('users/' + uid).remove();
+                loadUserTable();
+                alert('✅ 用戶已刪除');
+            } catch (e) {
+                alert('刪除失敗：' + e.message);
+            }
+        };
+
+        // ============================================================
+        // 7. 輕盤核心功能
         // ============================================================
         let isAdmin = false;
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
 
-        // ============================================================
-        // 3. 用戶 ID（localStorage 區分）
-        // ============================================================
-        function getUserId() {
-            let id = localStorage.getItem('applepan_user_id');
-            if (!id) {
-                id = 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-                localStorage.setItem('applepan_user_id', id);
+        // 取得當前登入用戶名稱
+        function getCurrentUserName() {
+            const local = localStorage.getItem('currentUser');
+            if (local) {
+                try {
+                    const user = JSON.parse(local);
+                    return user.name || user.email || '匿名用戶';
+                } catch (e) {}
             }
-            return id;
-        }
-        const CURRENT_USER_ID = getUserId();
-
-        // ============================================================
-        // 4. 核心下載（不跳轉）
-        // ============================================================
-        async function downloadFileDirect(url, fileName) {
-            if (!fileName) fileName = url.split('/').pop() || '下載檔案';
-            const btn = document.activeElement;
-            try {
-                if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
-                const resp = await fetch(url);
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                const blob = await resp.blob();
-                const objUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = objUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(objUrl), 5000);
-                if (btn) { btn.textContent = '✅'; setTimeout(() => { btn.textContent = '⬇️ 下載';
-                        btn.disabled = false; }, 1500); }
-            } catch (e) {
-                alert('下載失敗: ' + e.message);
-                if (btn) { btn.textContent = '⬇️ 下載';
-                    btn.disabled = false; }
+            const firebaseUser = auth.currentUser;
+            if (firebaseUser) {
+                return firebaseUser.displayName || firebaseUser.email || '匿名用戶';
             }
+            return '匿名用戶';
         }
 
-        // ============================================================
-        // 5. 工具
-        // ============================================================
+        function getCurrentUserEmail() {
+            const local = localStorage.getItem('currentUser');
+            if (local) {
+                try {
+                    const user = JSON.parse(local);
+                    return user.email || '公開上傳';
+                } catch (e) {}
+            }
+            const firebaseUser = auth.currentUser;
+            if (firebaseUser) {
+                return firebaseUser.email || '公開上傳';
+            }
+            return '公開上傳';
+        }
+
+        function getCurrentUserUid() {
+            const local = localStorage.getItem('currentUser');
+            if (local) {
+                try {
+                    const user = JSON.parse(local);
+                    return user.uid || '';
+                } catch (e) {}
+            }
+            const firebaseUser = auth.currentUser;
+            if (firebaseUser) {
+                return firebaseUser.uid || '';
+            }
+            return '';
+        }
+
         function showStatus(text, type = 'info') {
             const el = document.getElementById('status');
             el.textContent = text;
@@ -758,12 +1746,41 @@
             }
         }
 
-        // ============================================================
-        // 6. 上傳
-        // ============================================================
+        function downloadFileDirect(url, fileName) {
+            if (!fileName) fileName = url.split('/').pop() || '下載檔案';
+            const btn = document.activeElement;
+            try {
+                if (btn) { btn.textContent = '⏳';
+                    btn.disabled = true; }
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                if (btn) { btn.textContent = '✅';
+                    setTimeout(() => { btn.textContent = '⬇️ 下載';
+                        btn.disabled = false; }, 1500); }
+            } catch (e) {
+                alert('下載失敗: ' + e.message);
+                if (btn) { btn.textContent = '⬇️ 下載';
+                    btn.disabled = false; }
+            }
+        }
+
+        // ===== 上傳 =====
         async function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            // 檢查是否已登入
+            if (!auth.currentUser) {
+                alert('⚠️ 請先登入才能上傳檔案！');
+                document.getElementById('fileInput').value = '';
+                return;
+            }
+
             showStatus('⏳ 上傳中...', 'info');
             document.getElementById('uploadArea').style.opacity = '0.6';
 
@@ -781,21 +1798,28 @@
                 const shortCode = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 const shortLink = window.location.origin + window.location.pathname + '?download=' + shortCode;
 
+                // ✅ 記錄上傳者名稱（從 Firebase 獲取）
+                const uploaderName = getCurrentUserName();
+                const uploaderEmail = getCurrentUserEmail();
+                const uploaderUid = getCurrentUserUid();
+
                 const { error: de } = await supabaseClient.from('files').insert({
                     file_name: file.name,
                     file_size: file.size,
                     file_type: file.type || 'unknown',
                     download_url: downloadURL,
                     short_code: shortCode,
-                    uploader: CURRENT_USER_ID,
-                    uploader_email: '公開上傳'
+                    uploader: uploaderUid,
+                    uploader_name: uploaderName,
+                    uploader_email: uploaderEmail
                 });
                 if (de) throw de;
 
                 lastUploaded = { fileName: file.name, fileSize: file.size, downloadURL, shortLink };
                 const sizeMB = (file.size / 1024 / 1024).toFixed(1);
                 document.getElementById('successFileName').textContent = file.name;
-                document.getElementById('successFileMeta').textContent = `${sizeMB} MB · 剛剛上傳`;
+                document.getElementById('successFileMeta').textContent =
+                `${sizeMB} MB · 上傳者：${uploaderName}`;
                 document.getElementById('uploadSuccess').classList.add('show');
                 showStatus('✅ 上傳成功！', 'success');
                 loadFileList();
@@ -818,13 +1842,20 @@
             else alert('沒有可複製的連結');
         }
 
-        // ============================================================
-        // 7. 載入檔案列表（普通用戶只看自己，管理員全看）
-        // ============================================================
+        // ===== 載入檔案列表 =====
         async function loadFileList() {
             try {
                 let query = supabaseClient.from('files').select('*');
-                if (!isAdmin) query = query.eq('uploader', CURRENT_USER_ID);
+                if (!isAdmin) {
+                    // 普通用戶只看自己的檔案
+                    const uid = getCurrentUserUid();
+                    if (uid) {
+                        query = query.eq('uploader', uid);
+                    } else {
+                        // 未登入時顯示所有公開檔案（但無上傳者名稱）
+                        query = query.order('created_at', { ascending: false });
+                    }
+                }
                 const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
 
@@ -842,7 +1873,8 @@
                     const sizeMB = (f.file_size / 1024 / 1024).toFixed(1);
                     const shortLink = window.location.origin + window.location.pathname + '?download=' + f.short_code;
                     const time = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
-                    const uploaderInfo = isAdmin ? ` · 上傳者: ${f.uploader_email || f.uploader || '匿名'}` : '';
+                    const uploaderDisplay = f.uploader_name || f.uploader_email || '匿名用戶';
+                    const uploaderInfo = isAdmin ? ` · 上傳者: ${uploaderDisplay}` : ` · 👤 ${uploaderDisplay}`;
 
                     html += `
                         <div class="file-item">
@@ -864,7 +1896,8 @@
                 });
                 container.innerHTML = html;
             } catch (err) {
-                document.getElementById('fileList').innerHTML = `<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ${err.message}</div>`;
+                document.getElementById('fileList').innerHTML =
+                    `<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ${err.message}</div>`;
             }
         }
 
@@ -883,7 +1916,7 @@
         }
 
         // ============================================================
-        // 8. 管理員
+        // 8. 管理員（輕盤管理）
         // ============================================================
         function adminLogin() {
             const user = document.getElementById('adminUser').value.trim();
@@ -923,21 +1956,17 @@
         }
 
         // ============================================================
-        // 9. 分享連結處理
+        // 9. 分享連結（下載頁面）
         // ============================================================
         async function handleShareLink() {
             const params = new URLSearchParams(window.location.search);
             const shortCode = params.get('download');
             const debugBox = document.getElementById('debugBox');
 
-            // ?admin 入口
             if (params.has('admin')) {
                 document.getElementById('mainUI').style.display = 'none';
                 document.getElementById('downloadUI').style.display = 'none';
                 document.getElementById('adminModal').classList.add('show');
-                document.getElementById('adminUser').value = '';
-                document.getElementById('adminPass').value = '';
-                document.getElementById('adminError').classList.remove('show');
                 return;
             }
 
@@ -962,6 +1991,7 @@
                     document.getElementById('downloadFileName').textContent = '❌ 檔案不存在';
                     document.getElementById('downloadFileMeta').textContent = '連結可能已過期';
                     document.getElementById('directDownloadBtn').style.display = 'none';
+                    document.getElementById('downloadUploader').style.display = 'none';
                     document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
                     return;
                 }
@@ -976,6 +2006,12 @@
                 document.getElementById('downloadFileName').textContent = data.file_name;
                 document.getElementById('downloadFileMeta').textContent =
                     `${sizeMB} MB · 公開分享 · 下載 ${data.download_count || 0} 次`;
+
+                // ✅ 顯示上傳者名稱
+                const uploaderName = data.uploader_name || data.uploader_email || '匿名用戶';
+                document.getElementById('downloadUploaderName').textContent = uploaderName;
+                document.getElementById('downloadUploader').style.display = 'inline-block';
+
                 document.getElementById('directDownloadBtn').style.display = 'inline-block';
                 document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
 
@@ -988,6 +2024,7 @@
                 document.getElementById('downloadFileName').textContent = '❌ 載入失敗';
                 document.getElementById('downloadFileMeta').textContent = err.message;
                 document.getElementById('directDownloadBtn').style.display = 'none';
+                document.getElementById('downloadUploader').style.display = 'none';
                 document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
             }
         }
@@ -1001,7 +2038,7 @@
         }
 
         // ============================================================
-        // 10. 拖曳
+        // 10. 拖曳上傳
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const area = document.getElementById('uploadArea');
@@ -1027,8 +2064,75 @@
         });
 
         // ============================================================
-        // 11. 啟動
+        // 11. 事件綁定
         // ============================================================
+        // 聯絡我們
+        document.getElementById('contactBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('contactModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+        document.getElementById('contactModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // 登入相關
+        loginTabBtn.addEventListener('click', switchToLogin);
+        registerTabBtn.addEventListener('click', switchToRegister);
+        googleLoginBtn.addEventListener('click', googleLogin);
+        googleRegisterBtn.addEventListener('click', googleLogin);
+        registerSubmit.addEventListener('click', googleLogin);
+        loginSubmit.addEventListener('click', googleLogin);
+        authLogoutBtn.addEventListener('click', () => { handleLogout();
+            closeAuthModal(); });
+        authAdminBtn.addEventListener('click', () => { closeAuthModal();
+            setTimeout(openAdminModalFn, 300); });
+        closeAdminModalUsers.addEventListener('click', closeAdminModalFn);
+        adminModalUsers.addEventListener('click', (e) => { if (e.target === adminModalUsers) closeAdminModalFn(); });
+        authNavLink.addEventListener('click', openAuthModal);
+
+        avatarBtn.addEventListener('click', () => {
+            const local = localStorage.getItem('currentUser');
+            if (local) {
+                openAuthModal();
+                authPanel.style.display = 'none';
+                authLoggedInPanel.style.display = 'block';
+                const user = JSON.parse(local);
+                authDisplayName.textContent = user.name || '使用者';
+                authDisplayEmail.textContent = user.email || '';
+                if (isAdminUser(user)) {
+                    authAdminBtn.style.display = 'block';
+                } else {
+                    authAdminBtn.style.display = 'none';
+                }
+            } else {
+                openAuthModal();
+            }
+        });
+
+        authModal.addEventListener('click', (e) => { if (e.target === authModal) closeAuthModal(); });
+
+        // ============================================================
+        // 12. 啟動
+        // ============================================================
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const ud = {
+                    name: user.displayName,
+                    email: user.email,
+                    photo: user.photoURL,
+                    uid: user.uid
+                };
+                localStorage.setItem('currentUser', JSON.stringify(ud));
+                showUI(user);
+            } else {
+                hideUI();
+            }
+        });
+
         window.onload = function() {
             handleShareLink();
             const params = new URLSearchParams(window.location.search);
@@ -1037,13 +2141,14 @@
                 document.getElementById('downloadUI').style.display = 'none';
                 loadFileList();
                 showStatus('✅ 就緒', 'success');
-                console.log('👤 用戶 ID:', CURRENT_USER_ID);
+                console.log('☁️ 輕盤已啟動');
+                console.log('👤 已登入:', !!auth.currentUser);
             }
         };
 
-        console.log('🍎 蘋果網盤 · 白色精美版');
+        console.log('☁️ 輕盤 · 已整合 Firebase 登入');
         console.log('🔑 管理員入口: ?admin');
-        console.log('👤 當前用戶:', CURRENT_USER_ID);
+        console.log('👤 當前用戶:', auth.currentUser?.displayName || '未登入');
     </script>
 </body>
 </html>
