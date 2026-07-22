@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>🍎 苹果网盘</title>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js">
@@ -15,6 +14,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
     <style>
+        /* ===== 样式同之前，省略（与上一版本一致） ===== */
         * {
             margin: 0;
             padding: 0;
@@ -115,8 +115,6 @@
             font-size: 14px;
             margin-bottom: 16px;
         }
-
-        /* 认证表单 */
         .auth-container {
             max-width: 400px;
             margin: 0 auto 24px;
@@ -185,7 +183,6 @@
         .auth-form .success-msg.show {
             display: block;
         }
-
         #status {
             padding: 12px 18px;
             border-radius: 16px;
@@ -211,7 +208,6 @@
             color: #1a5bbf;
             border: 1px solid #c5d9f5;
         }
-
         .upload-card {
             background: #fafcff;
             border: 2px dashed #dce3ec;
@@ -244,7 +240,6 @@
         #fileInput {
             display: none;
         }
-
         .upload-success {
             background: #ecfdf3;
             border-radius: 24px;
@@ -307,7 +302,6 @@
         .btn-close-sm:hover {
             background: #f1f4f9;
         }
-
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -326,7 +320,6 @@
             font-size: 12px;
             margin-left: 6px;
         }
-
         #fileList {
             display: flex;
             flex-direction: column;
@@ -415,14 +408,12 @@
         .file-item .actions .delete-btn:hover {
             background: #fcd3d0;
         }
-
         .empty-state {
             color: #9aabbe;
             text-align: center;
             padding: 40px 0;
             font-size: 15px;
         }
-
         .download-page {
             text-align: center;
             padding: 40px 20px 20px;
@@ -468,7 +459,6 @@
         .download-page .back-link:hover {
             color: #1e5ef7;
         }
-
         .debug-box {
             background: #f4f6fa;
             border-radius: 14px;
@@ -501,7 +491,6 @@
             background: #f0f7ff;
             color: #1a5bbf;
         }
-
         .modal-overlay {
             display: none;
             position: fixed;
@@ -583,7 +572,6 @@
         .modal-box .cancel-btn:hover {
             background: #f1f4f9;
         }
-
         @media (max-width: 600px) {
             .app {
                 padding: 20px 16px 28px;
@@ -604,7 +592,6 @@
 <body>
     <div class="app" id="app">
 
-        <!-- 顶栏 -->
         <div class="topbar">
             <div class="logo"><i>🍎</i><span>蘋果網盤</span></div>
             <div class="topbar-actions">
@@ -618,7 +605,6 @@
 
         <div id="status"></div>
 
-        <!-- ===== 认证区（仅邮箱） ===== -->
         <div id="authContainer" class="auth-container">
             <div class="auth-form" id="emailForm">
                 <input type="email" id="emailInput" placeholder="電子郵件" />
@@ -630,7 +616,6 @@
             </div>
         </div>
 
-        <!-- ===== 主界面 ===== -->
         <div id="mainUI" style="display:none;">
             <div class="upload-card" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                 <span class="icon">📤</span>
@@ -659,7 +644,6 @@
             </div>
         </div>
 
-        <!-- ===== 下載頁面 ===== -->
         <div id="downloadUI" style="display:none;">
             <div class="download-page">
                 <div class="big-icon" id="downloadIcon">📄</div>
@@ -673,7 +657,6 @@
         </div>
     </div>
 
-    <!-- ===== 管理員登入模態框 ===== -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
             <h2>🔐 管理員登入</h2>
@@ -686,10 +669,9 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
     <script>
         // ============================================================
-        // 1. Firebase 配置
+        // Firebase 配置
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBKSHBZO-q_0Xl6p49PEVXX5QvXQwzA_Jo",
@@ -707,14 +689,14 @@
         const storage = firebase.storage();
 
         // ============================================================
-        // 2. 全域狀態
+        // 全域狀態
         // ============================================================
         let currentUser = null;
         let isAdmin = false;
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
-        let emailMode = 'login'; // login / register
+        let emailMode = 'login';
 
         // DOM 元素
         const authContainer = document.getElementById('authContainer');
@@ -731,7 +713,7 @@
         const emailSuccess = document.getElementById('emailSuccess');
 
         // ============================================================
-        // 3. 工具函數
+        // 工具函數
         // ============================================================
         function showStatus(text, type = 'info') {
             statusEl.textContent = text;
@@ -747,7 +729,6 @@
             }
         }
 
-        // 下載檔案（不跳轉）
         async function downloadFileDirect(url, fileName) {
             if (!fileName) fileName = url.split('/').pop() || '下載檔案';
             const btn = document.activeElement;
@@ -776,7 +757,7 @@
         }
 
         // ============================================================
-        // 4. 監聽登入狀態
+        // 監聽登入狀態
         // ============================================================
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -804,7 +785,7 @@
         });
 
         // ============================================================
-        // 5. 郵箱認證
+        // 郵箱認證
         // ============================================================
         toggleEmailMode.addEventListener('click', function() {
             if (emailMode === 'login') {
@@ -848,7 +829,6 @@
                         this.textContent = '登入';
                     });
             } else {
-                // 註冊並發送驗證信
                 auth.createUserWithEmailAndPassword(email, password)
                     .then(userCredential => {
                         userCredential.user.sendEmailVerification().then(() => {
@@ -876,39 +856,92 @@
             }
         });
 
-        // ============================================================
-        // 6. 登出
-        // ============================================================
         function logout() {
             auth.signOut();
             showStatus('已登出', 'info');
         }
 
         // ============================================================
-        // 7. 上傳檔案
+        // 🔥 上傳檔案（修復版，增強錯誤處理）
         // ============================================================
         async function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            // 檢查登入狀態
             if (!currentUser) {
                 alert('請先登入');
                 return;
             }
+
+            // 顯示上傳中狀態
+            const uploadArea = document.getElementById('uploadArea');
+            const statusText = document.getElementById('status');
             showStatus('⏳ 上傳中...', 'info');
-            document.getElementById('uploadArea').style.opacity = '0.6';
+            uploadArea.style.opacity = '0.6';
+            // 禁用上傳區域（防止重複點擊）
+            uploadArea.style.pointerEvents = 'none';
+
+            // 設定超時（60秒後自動失敗）
+            const timeoutId = setTimeout(() => {
+                showStatus('❌ 上傳逾時，請檢查網路後重試', 'error');
+                uploadArea.style.opacity = '1';
+                uploadArea.style.pointerEvents = 'auto';
+                // 恢復上傳區域文字
+                uploadArea.innerHTML = `
+                    <span class="icon">📤</span>
+                    <p>點擊或拖曳上傳檔案</p>
+                    <div class="hint">所有檔案類型 · 無大小限制</div>
+                `;
+                document.getElementById('fileInput').value = '';
+            }, 60000); // 60 秒逾時
 
             try {
+                // 1. 生成檔案路徑
                 const ext = file.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
                 const filePath = `files/${currentUser.uid}/${fileName}`;
+                console.log('📁 上傳路徑:', filePath);
 
+                // 2. 上傳到 Storage
                 const uploadTask = storage.ref(filePath).put(file);
-                await uploadTask;
-                const downloadURL = await storage.ref(filePath).getDownloadURL();
 
+                // 監聽上傳進度（可選）
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log(`⏳ 上傳進度: ${Math.round(progress)}%`);
+                        showStatus(`⏳ 上傳中 ${Math.round(progress)}%`, 'info');
+                    },
+                    (error) => {
+                        // 上傳失敗
+                        clearTimeout(timeoutId);
+                        console.error('❌ Storage 上傳錯誤:', error);
+                        showStatus('❌ 上傳失敗: ' + error.message, 'error');
+                        uploadArea.style.opacity = '1';
+                        uploadArea.style.pointerEvents = 'auto';
+                        uploadArea.innerHTML = `
+                            <span class="icon">📤</span>
+                            <p>點擊或拖曳上傳檔案</p>
+                            <div class="hint">所有檔案類型 · 無大小限制</div>
+                        `;
+                        document.getElementById('fileInput').value = '';
+                        throw error; // 拋出以便外層 catch
+                    }
+                );
+
+                // 等待上傳完成
+                await uploadTask;
+
+                // 取得下載 URL
+                const downloadURL = await storage.ref(filePath).getDownloadURL();
+                console.log('✅ 下載 URL:', downloadURL);
+
+                // 3. 產生短碼
                 const shortCode = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 const shortLink = window.location.origin + window.location.pathname + '?download=' + shortCode;
 
+                // 4. 寫入 Firestore
                 await db.collection('files').add({
                     fileName: file.name,
                     fileSize: file.size,
@@ -921,18 +954,43 @@
                     downloadCount: 0
                 });
 
+                // 清除超時
+                clearTimeout(timeoutId);
+
+                // 5. 更新 UI
                 lastUploaded = { fileName: file.name, fileSize: file.size, downloadURL, shortLink };
                 const sizeMB = (file.size / 1024 / 1024).toFixed(1);
                 document.getElementById('successFileName').textContent = file.name;
                 document.getElementById('successFileMeta').textContent = `${sizeMB} MB · 剛剛上傳`;
                 document.getElementById('uploadSuccess').classList.add('show');
+
                 showStatus('✅ 上傳成功！', 'success');
                 loadFileList();
+
+                // 恢復上傳區域
+                uploadArea.style.opacity = '1';
+                uploadArea.style.pointerEvents = 'auto';
+                document.getElementById('fileInput').value = '';
+
             } catch (err) {
-                showStatus('❌ 上傳失敗: ' + err.message, 'error');
-                alert('上傳失敗: ' + err.message);
-            } finally {
-                document.getElementById('uploadArea').style.opacity = '1';
+                // 任何錯誤都會被捕獲
+                clearTimeout(timeoutId);
+                console.error('❌ 上傳錯誤:', err);
+                // 如果狀態尚未顯示錯誤，則顯示通用錯誤
+                if (statusEl.textContent === '⏳ 上傳中...' || statusEl.textContent.includes('⏳ 上傳中')) {
+                    showStatus('❌ 上傳失敗: ' + (err.message || '未知錯誤，請查看控制台'), 'error');
+                }
+                // 恢復上傳區域
+                uploadArea.style.opacity = '1';
+                uploadArea.style.pointerEvents = 'auto';
+                // 恢復上傳區域文字（如果被修改）
+                if (uploadArea.querySelector('.icon') === null) {
+                    uploadArea.innerHTML = `
+                        <span class="icon">📤</span>
+                        <p>點擊或拖曳上傳檔案</p>
+                        <div class="hint">所有檔案類型 · 無大小限制</div>
+                    `;
+                }
                 document.getElementById('fileInput').value = '';
             }
         }
@@ -948,7 +1006,7 @@
         }
 
         // ============================================================
-        // 8. 載入檔案列表
+        // 載入檔案列表
         // ============================================================
         async function loadFileList() {
             if (!currentUser && !isAdmin) {
@@ -1022,7 +1080,7 @@
         }
 
         // ============================================================
-        // 9. 分享連結處理
+        // 分享連結處理
         // ============================================================
         async function handleShareLink() {
             const params = new URLSearchParams(window.location.search);
@@ -1109,7 +1167,7 @@
         }
 
         // ============================================================
-        // 10. 管理員
+        // 管理員
         // ============================================================
         function adminLogin() {
             const user = document.getElementById('adminUser').value.trim();
@@ -1152,13 +1210,11 @@
         }
 
         // ============================================================
-        // 11. 初始化
+        // 初始化
         // ============================================================
         function initApp() {
-            // 處理分享連結
             handleShareLink();
 
-            // 拖曳支援
             const area = document.getElementById('uploadArea');
             if (area) {
                 area.addEventListener('dragover', function(e) {
@@ -1182,13 +1238,11 @@
                 });
             }
 
-            console.log('🍎 蘋果網盤 - 精簡版（僅郵箱登入）');
+            console.log('🍎 蘋果網盤 - 上傳修復版');
             console.log('🔑 管理員入口: ?admin');
         }
 
-        // 啟動
         document.addEventListener('DOMContentLoaded', initApp);
-        // 若 DOM 已載入，直接執行
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             initApp();
         }
