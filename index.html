@@ -4,23 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>🍎 苹果网盘</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
     <style>
+        /* ============================================================
+                   白色风格 · 无敌雷霆精美 UI
+                   ============================================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #f4f6fa;
             min-height: 100vh;
             display: flex;
@@ -29,6 +27,7 @@
             padding: 32px 20px;
             color: #1a1a2e;
         }
+
         .app {
             max-width: 820px;
             width: 100%;
@@ -36,33 +35,48 @@
             border-radius: 40px;
             padding: 32px 36px 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s;
             position: relative;
         }
+
+        /* ----- 顶部 ----- */
         .topbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 24px;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 20px;
         }
+
         .logo {
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 24px;
             font-weight: 700;
+            letter-spacing: -0.3px;
             color: #0b0b1a;
         }
         .logo i {
             font-size: 28px;
             color: #1e5ef7;
+            background: linear-gradient(145deg, #1e5ef7, #3b7cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+        .logo span {
+            background: linear-gradient(145deg, #0b0b1a, #2d3342);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .topbar-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
+
         .admin-badge {
             display: none;
             background: #1e5ef7;
@@ -71,30 +85,33 @@
             font-weight: 600;
             padding: 4px 14px;
             border-radius: 40px;
+            letter-spacing: 0.3px;
         }
         .admin-badge.show {
             display: inline-block;
         }
-        .exit-admin-btn,
-        .logout-btn {
+
+        .exit-admin-btn {
             background: transparent;
             border: 1px solid #e2e8f0;
             color: #4a5a6e;
             padding: 4px 14px;
             border-radius: 40px;
             font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
             display: none;
         }
-        .exit-admin-btn.show,
-        .logout-btn.show {
+        .exit-admin-btn:hover {
+            background: #f1f4f9;
+            border-color: #cbd5e1;
+        }
+        .exit-admin-btn.show {
             display: inline-block;
         }
-        .exit-admin-btn:hover,
-        .logout-btn:hover {
-            background: #f1f4f9;
-        }
+
+        /* 隐藏管理按钮（右上角小圆点） */
         #adminSecretBtn {
             width: 28px;
             height: 28px;
@@ -103,91 +120,37 @@
             border: 1px solid #eef2f6;
             color: #c8d0dc;
             font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            transition: 0.2s;
             opacity: 0.5;
         }
         #adminSecretBtn:hover {
             opacity: 1;
+            border-color: #b8c4d4;
         }
+
         .subtitle {
             color: #8a98aa;
             font-size: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
+            font-weight: 450;
+            letter-spacing: 0.2px;
         }
-        .auth-container {
-            max-width: 400px;
-            margin: 0 auto 24px;
-        }
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .auth-form input {
-            padding: 14px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            font-size: 15px;
-            background: #fafcff;
-            transition: 0.2s;
-            outline: none;
-        }
-        .auth-form input:focus {
-            border-color: #1e5ef7;
-            box-shadow: 0 0 0 3px rgba(30, 94, 247, 0.08);
-        }
-        .auth-form button {
-            padding: 14px;
-            border: none;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            background: #1e5ef7;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .auth-form button:hover {
-            background: #2b6af7;
-        }
-        .auth-form button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .auth-form .toggle-link {
-            text-align: center;
-            font-size: 14px;
-            color: #1e5ef7;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-        .auth-form .toggle-link:hover {
-            text-decoration: underline;
-        }
-        .auth-form .error-msg {
-            color: #b91c1c;
-            font-size: 13px;
-            text-align: center;
-            display: none;
-        }
-        .auth-form .error-msg.show {
-            display: block;
-        }
-        .auth-form .success-msg {
-            color: #0f7b3a;
-            font-size: 13px;
-            text-align: center;
-            display: none;
-        }
-        .auth-form .success-msg.show {
-            display: block;
-        }
+
+        /* ----- 状态信息 ----- */
         #status {
             padding: 12px 18px;
             border-radius: 16px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             display: none;
             font-size: 14px;
+            font-weight: 450;
+            background: #f8faff;
+            color: #1e5ef7;
+            border: 1px solid #e8effb;
         }
         #status.show {
             display: block;
@@ -195,18 +158,20 @@
         #status.success {
             background: #ecfdf3;
             color: #0f7b3a;
-            border: 1px solid #b8e0c4;
+            border-color: #b8e0c4;
         }
         #status.error {
             background: #fef3f2;
             color: #b91c1c;
-            border: 1px solid #fcd3d0;
+            border-color: #fcd3d0;
         }
         #status.info {
             background: #f0f7ff;
             color: #1a5bbf;
-            border: 1px solid #c5d9f5;
+            border-color: #c5d9f5;
         }
+
+        /* ----- 上传区（精美卡片） ----- */
         .upload-card {
             background: #fafcff;
             border: 2px dashed #dce3ec;
@@ -214,31 +179,41 @@
             padding: 48px 24px;
             text-align: center;
             cursor: pointer;
-            transition: 0.25s;
-            margin-bottom: 24px;
+            transition: all 0.25s ease;
+            margin-bottom: 28px;
+            position: relative;
         }
         .upload-card:hover {
             border-color: #1e5ef7;
             background: #f5f9ff;
             transform: translateY(-2px);
         }
+        .upload-card:active {
+            transform: scale(0.98);
+        }
         .upload-card .icon {
             font-size: 48px;
             color: #1e5ef7;
-            display: block;
+            opacity: 0.8;
             margin-bottom: 8px;
+            display: block;
         }
         .upload-card p {
-            font-weight: 500;
             color: #3d4a5e;
+            font-weight: 500;
+            font-size: 16px;
         }
         .upload-card .hint {
             font-size: 13px;
             color: #9aabbe;
+            font-weight: 400;
+            margin-top: 4px;
         }
         #fileInput {
             display: none;
         }
+
+        /* ----- 上传成功卡片 ----- */
         .upload-success {
             background: #ecfdf3;
             border-radius: 24px;
@@ -255,6 +230,7 @@
         }
         .upload-success .file-info {
             flex: 1;
+            min-width: 140px;
         }
         .upload-success .file-name {
             font-weight: 600;
@@ -301,6 +277,8 @@
         .btn-close-sm:hover {
             background: #f1f4f9;
         }
+
+        /* ----- 文件列表 ----- */
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -317,13 +295,16 @@
             padding: 0 10px;
             border-radius: 30px;
             font-size: 12px;
+            color: #3d4a5e;
             margin-left: 6px;
         }
+
         #fileList {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
+
         .file-item {
             display: flex;
             align-items: center;
@@ -349,14 +330,15 @@
         }
         .file-item .info .icon {
             font-size: 22px;
+            opacity: 0.7;
             width: 36px;
             text-align: center;
-            opacity: 0.7;
         }
         .file-item .info .name {
             font-weight: 500;
             font-size: 14px;
             color: #1a1a2e;
+            word-break: break-word;
         }
         .file-item .info .meta {
             font-size: 12px;
@@ -364,6 +346,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 4px 12px;
+            margin-top: 2px;
         }
         .file-item .info .short-link {
             font-size: 12px;
@@ -407,12 +390,15 @@
         .file-item .actions .delete-btn:hover {
             background: #fcd3d0;
         }
+
         .empty-state {
             color: #9aabbe;
             text-align: center;
             padding: 40px 0;
             font-size: 15px;
         }
+
+        /* ----- 下載頁面（分享鏈接） ----- */
         .download-page {
             text-align: center;
             padding: 40px 20px 20px;
@@ -447,6 +433,7 @@
         .download-page .btn-download-big:hover {
             background: #2b6af7;
             transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(30, 94, 247, 0.3);
         }
         .download-page .back-link {
             display: inline-block;
@@ -454,16 +441,21 @@
             color: #8a98aa;
             text-decoration: none;
             font-size: 14px;
+            border-bottom: 1px solid transparent;
+            transition: 0.2s;
         }
         .download-page .back-link:hover {
             color: #1e5ef7;
+            border-bottom-color: #1e5ef7;
         }
+
+        /* ----- 診斷框（低調） ----- */
         .debug-box {
             background: #f4f6fa;
             border-radius: 14px;
             padding: 12px 16px;
             margin-top: 18px;
-            font-family: monospace;
+            font-family: 'Inter', monospace;
             font-size: 12px;
             color: #5a6a7e;
             text-align: left;
@@ -490,6 +482,8 @@
             background: #f0f7ff;
             color: #1a5bbf;
         }
+
+        /* ----- 管理員登入模態框（純白） ----- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -505,7 +499,7 @@
             display: flex;
         }
         .modal-box {
-            background: white;
+            background: #ffffff;
             border-radius: 40px;
             padding: 36px 32px 32px;
             max-width: 380px;
@@ -517,6 +511,7 @@
             font-size: 22px;
             font-weight: 600;
             margin-bottom: 4px;
+            color: #1a1a2e;
         }
         .modal-box .modal-sub {
             color: #8a98aa;
@@ -531,11 +526,12 @@
             border-radius: 20px;
             font-size: 15px;
             background: #fafcff;
-            outline: none;
             transition: 0.2s;
+            outline: none;
         }
         .modal-box input:focus {
             border-color: #1e5ef7;
+            background: #ffffff;
             box-shadow: 0 0 0 3px rgba(30, 94, 247, 0.08);
         }
         .modal-box button {
@@ -571,19 +567,31 @@
         .modal-box .cancel-btn:hover {
             background: #f1f4f9;
         }
+
+        /* ----- 響應式 ----- */
         @media (max-width: 600px) {
             .app {
                 padding: 20px 16px 28px;
                 border-radius: 28px;
             }
-            .auth-container {
-                max-width: 100%;
+            .logo {
+                font-size: 20px;
             }
             .upload-card {
                 padding: 32px 16px;
             }
+            .upload-card .icon {
+                font-size: 36px;
+            }
             .file-item {
                 padding: 12px 14px;
+            }
+            .file-item .info {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .modal-box {
+                padding: 28px 20px;
             }
         }
     </style>
@@ -591,31 +599,27 @@
 <body>
     <div class="app" id="app">
 
+        <!-- ========== 頂欄 ========== -->
         <div class="topbar">
-            <div class="logo"><i>🍎</i><span>蘋果網盤</span></div>
+            <div class="logo">
+                <i class="logo-icon">🍎</i>
+                <span>蘋果網盤</span>
+            </div>
             <div class="topbar-actions">
                 <span class="admin-badge" id="adminBadge">👑 管理員</span>
                 <button class="exit-admin-btn" id="exitAdminBtn" onclick="exitAdmin()">退出管理</button>
-                <button class="logout-btn" id="logoutBtn" onclick="logout()">登出</button>
-                <button id="adminSecretBtn" onclick="adminSecretClick()">⋅⋅⋅</button>
+                <button id="adminSecretBtn" onclick="adminSecretClick()" aria-label="管理入口">⋅⋅⋅</button>
             </div>
         </div>
-        <div class="subtitle" id="userStatus">📤 請登入以使用完整功能</div>
+        <div class="subtitle">📤 完全公開 · 無需登入 · 即傳即用</div>
 
+        <!-- ========== 狀態 ========== -->
         <div id="status"></div>
 
-        <div id="authContainer" class="auth-container">
-            <div class="auth-form" id="emailForm">
-                <input type="email" id="emailInput" placeholder="電子郵件" />
-                <input type="password" id="passwordInput" placeholder="密碼 (至少6位)" />
-                <button id="emailActionBtn">登入</button>
-                <div class="toggle-link" id="toggleEmailMode">還沒有帳號？註冊</div>
-                <div class="error-msg" id="emailError"></div>
-                <div class="success-msg" id="emailSuccess"></div>
-            </div>
-        </div>
+        <!-- ========== 主界面 ========== -->
+        <div id="mainUI">
 
-        <div id="mainUI" style="display:none;">
+            <!-- 上傳區 -->
             <div class="upload-card" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                 <span class="icon">📤</span>
                 <p>點擊或拖曳上傳檔案</p>
@@ -623,6 +627,7 @@
             </div>
             <input type="file" id="fileInput" onchange="handleFileSelect(event)" />
 
+            <!-- 上傳成功卡片 -->
             <div class="upload-success" id="uploadSuccess">
                 <div class="file-info">
                     <div class="file-name" id="successFileName">檔案名稱</div>
@@ -635,27 +640,30 @@
                 </div>
             </div>
 
+            <!-- 檔案列表 -->
             <div class="list-header">
-                <div class="file-count">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
+                <div class="file-count" id="fileCount">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
             </div>
             <div id="fileList">
                 <div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>
             </div>
         </div>
 
+        <!-- ========== 下載頁面 ========== -->
         <div id="downloadUI" style="display:none;">
             <div class="download-page">
                 <div class="big-icon" id="downloadIcon">📄</div>
                 <h2 id="downloadFileName">檔案名稱</h2>
                 <div class="meta" id="downloadFileMeta">大小 · 公開分享</div>
                 <button class="btn-download-big" id="directDownloadBtn" onclick="directDownload()">⬇️ 立即下載</button>
-                <div style="margin-top:8px;font-size:13px;color:#9aabbe;">⚡ 全速下載 · 無需登入</div>
+                <div style="margin-top:8px; font-size:13px; color:#9aabbe;">⚡ 全速下載 · 無需登入</div>
                 <div id="debugBox" class="debug-box"></div>
                 <a href="#" class="back-link" id="backHomeLink">← 返回首頁</a>
             </div>
         </div>
     </div>
 
+    <!-- ========== 管理員登入模態框 ========== -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
             <h2>🔐 管理員登入</h2>
@@ -668,72 +676,50 @@
         </div>
     </div>
 
+    <!-- ============================================================ -->
     <script>
         // ============================================================
-        // Firebase 配置
+        // 1. Supabase 設定
         // ============================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBKSHBZO-q_0Xl6p49PEVXX5QvXQwzA_Jo",
-            authDomain: "mpox-6dcfe.firebaseapp.com",
-            databaseURL: "https://mpox-6dcfe-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "mpox-6dcfe",
-            storageBucket: "mpox-6dcfe.firebasestorage.app",
-            messagingSenderId: "50859850749",
-            appId: "1:50859850749:web:ada6bba4cd74b1923e3794",
-            measurementId: "G-PECMD0ZEFJ"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+        const SUPABASE_URL = 'https://mpygxmnugiknpqlkzczm.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_JHvmzxxmPDCyP7PH9eYtzQ_GWOBVHPS';
+        const BUCKET = 'files';
+
+        if (typeof supabase === 'undefined') {
+            alert('❌ Supabase SDK 載入失敗，請檢查網路！');
+            throw new Error('SDK 未載入');
+        }
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ============================================================
-        // 全域狀態
+        // 2. 狀態
         // ============================================================
-        let currentUser = null;
         let isAdmin = false;
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
-        let emailMode = 'login';
-
-        // DOM 元素
-        const authContainer = document.getElementById('authContainer');
-        const mainUI = document.getElementById('mainUI');
-        const downloadUI = document.getElementById('downloadUI');
-        const statusEl = document.getElementById('status');
-        const userStatus = document.getElementById('userStatus');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const emailInput = document.getElementById('emailInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const emailActionBtn = document.getElementById('emailActionBtn');
-        const toggleEmailMode = document.getElementById('toggleEmailMode');
-        const emailError = document.getElementById('emailError');
-        const emailSuccess = document.getElementById('emailSuccess');
 
         // ============================================================
-        // 工具函數
+        // 3. 用戶 ID（localStorage 區分）
         // ============================================================
-        function showStatus(text, type = 'info') {
-            statusEl.textContent = text;
-            statusEl.className = 'show ' + type;
-        }
-
-        function copyLink(link) {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(link).then(() => alert('✅ 連結已複製！\n' + link))
-                    .catch(() => prompt('請手動複製：', link));
-            } else {
-                prompt('請手動複製：', link);
+        function getUserId() {
+            let id = localStorage.getItem('applepan_user_id');
+            if (!id) {
+                id = 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                localStorage.setItem('applepan_user_id', id);
             }
+            return id;
         }
+        const CURRENT_USER_ID = getUserId();
 
+        // ============================================================
+        // 4. 核心下載（不跳轉）
+        // ============================================================
         async function downloadFileDirect(url, fileName) {
             if (!fileName) fileName = url.split('/').pop() || '下載檔案';
             const btn = document.activeElement;
             try {
-                if (btn) { btn.textContent = '⏳';
-                    btn.disabled = true; }
+                if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
                 const resp = await fetch(url);
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const blob = await resp.blob();
@@ -745,8 +731,7 @@
                 a.click();
                 document.body.removeChild(a);
                 setTimeout(() => URL.revokeObjectURL(objUrl), 5000);
-                if (btn) { btn.textContent = '✅';
-                    setTimeout(() => { btn.textContent = '⬇️ 下載';
+                if (btn) { btn.textContent = '✅'; setTimeout(() => { btn.textContent = '⬇️ 下載';
                         btn.disabled = false; }, 1500); }
             } catch (e) {
                 alert('下載失敗: ' + e.message);
@@ -756,176 +741,69 @@
         }
 
         // ============================================================
-        // 監聽登入狀態
+        // 5. 工具
         // ============================================================
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                authContainer.style.display = 'none';
-                mainUI.style.display = 'block';
-                logoutBtn.classList.add('show');
-                userStatus.textContent = `👤 已登入: ${user.email || user.uid}`;
-                showStatus('✅ 登入成功', 'success');
-                loadFileList();
-                if (user.email && !user.emailVerified) {
-                    showStatus('📧 請驗證您的電子郵件 (已發送驗證信)', 'info');
-                }
+        function showStatus(text, type = 'info') {
+            const el = document.getElementById('status');
+            el.textContent = text;
+            el.className = 'show ' + type;
+        }
+
+        function copyLink(link) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(link).then(() => alert('✅ 連結已複製！\n' + link))
+                    .catch(() => prompt('請手動複製：', link));
             } else {
-                currentUser = null;
-                authContainer.style.display = 'block';
-                mainUI.style.display = 'none';
-                logoutBtn.classList.remove('show');
-                userStatus.textContent = '📤 請登入以使用完整功能';
-                const params = new URLSearchParams(window.location.search);
-                if (!params.get('download')) {
-                    downloadUI.style.display = 'none';
-                }
+                prompt('請手動複製：', link);
             }
-        });
-
-        // ============================================================
-        // 郵箱認證
-        // ============================================================
-        toggleEmailMode.addEventListener('click', function() {
-            if (emailMode === 'login') {
-                emailMode = 'register';
-                emailActionBtn.textContent = '註冊';
-                this.textContent = '已有帳號？登入';
-            } else {
-                emailMode = 'login';
-                emailActionBtn.textContent = '登入';
-                this.textContent = '還沒有帳號？註冊';
-            }
-            emailError.classList.remove('show');
-            emailSuccess.classList.remove('show');
-        });
-
-        emailActionBtn.addEventListener('click', function() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            if (!email || !password) {
-                emailError.textContent = '請填寫完整資訊';
-                emailError.classList.add('show');
-                return;
-            }
-            if (password.length < 6) {
-                emailError.textContent = '密碼至少6位';
-                emailError.classList.add('show');
-                return;
-            }
-            emailError.classList.remove('show');
-            emailSuccess.classList.remove('show');
-            this.disabled = true;
-            this.textContent = '處理中...';
-
-            if (emailMode === 'login') {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(() => {})
-                    .catch(err => {
-                        emailError.textContent = err.message;
-                        emailError.classList.add('show');
-                        this.disabled = false;
-                        this.textContent = '登入';
-                    });
-            } else {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then(userCredential => {
-                        userCredential.user.sendEmailVerification().then(() => {
-                            emailSuccess.textContent = '✅ 註冊成功！驗證信已發送至您的郵箱，請點擊驗證後登入。';
-                            emailSuccess.classList.add('show');
-                            emailActionBtn.textContent = '已發送驗證信';
-                            emailActionBtn.disabled = true;
-                            setTimeout(() => {
-                                emailActionBtn.textContent = '註冊';
-                                emailActionBtn.disabled = false;
-                            }, 3000);
-                        }).catch(err => {
-                            emailError.textContent = '註冊成功但無法發送驗證信: ' + err.message;
-                            emailError.classList.add('show');
-                            emailActionBtn.disabled = false;
-                            emailActionBtn.textContent = '註冊';
-                        });
-                    })
-                    .catch(err => {
-                        emailError.textContent = err.message;
-                        emailError.classList.add('show');
-                        this.disabled = false;
-                        this.textContent = '註冊';
-                    });
-            }
-        });
-
-        function logout() {
-            auth.signOut();
-            showStatus('已登出', 'info');
         }
 
         // ============================================================
-        // 🔥 上傳檔案 - 最簡穩定版
+        // 6. 上傳
         // ============================================================
         async function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            if (!currentUser) {
-                alert('請先登入');
-                return;
-            }
-
-            const uploadArea = document.getElementById('uploadArea');
             showStatus('⏳ 上傳中...', 'info');
-            uploadArea.style.opacity = '0.6';
-            uploadArea.style.pointerEvents = 'none';
+            document.getElementById('uploadArea').style.opacity = '0.6';
 
             try {
-                // 1. 生成檔案路徑
                 const ext = file.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-                const filePath = `files/${currentUser.uid}/${fileName}`;
-                console.log('📁 上傳路徑:', filePath);
+                const filePath = `public/${fileName}`;
 
-                // 2. 建立 Storage 引用並上傳（直接等待）
-                const storageRef = storage.ref(filePath);
-                await storageRef.put(file);
-                console.log('✅ 上傳完成');
+                const { error: ue } = await supabaseClient.storage.from(BUCKET).upload(filePath, file, { cacheControl: '3600',
+                        upsert: false });
+                if (ue) throw ue;
 
-                // 3. 取得下載網址
-                const downloadURL = await storageRef.getDownloadURL();
-                console.log('✅ 下載 URL:', downloadURL);
-
-                // 4. 產生短碼
+                const { data: urlData } = supabaseClient.storage.from(BUCKET).getPublicUrl(filePath);
+                const downloadURL = urlData.publicUrl;
                 const shortCode = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 const shortLink = window.location.origin + window.location.pathname + '?download=' + shortCode;
 
-                // 5. 寫入 Firestore
-                await db.collection('files').add({
-                    fileName: file.name,
-                    fileSize: file.size,
-                    fileType: file.type || 'unknown',
-                    downloadURL: downloadURL,
-                    shortCode: shortCode,
-                    uploaderUid: currentUser.uid,
-                    uploaderEmail: currentUser.email || '匿名',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    downloadCount: 0
+                const { error: de } = await supabaseClient.from('files').insert({
+                    file_name: file.name,
+                    file_size: file.size,
+                    file_type: file.type || 'unknown',
+                    download_url: downloadURL,
+                    short_code: shortCode,
+                    uploader: CURRENT_USER_ID,
+                    uploader_email: '公開上傳'
                 });
+                if (de) throw de;
 
-                // 6. 更新 UI
                 lastUploaded = { fileName: file.name, fileSize: file.size, downloadURL, shortLink };
                 const sizeMB = (file.size / 1024 / 1024).toFixed(1);
                 document.getElementById('successFileName').textContent = file.name;
                 document.getElementById('successFileMeta').textContent = `${sizeMB} MB · 剛剛上傳`;
                 document.getElementById('uploadSuccess').classList.add('show');
-
                 showStatus('✅ 上傳成功！', 'success');
                 loadFileList();
-
             } catch (err) {
-                console.error('❌ 上傳錯誤:', err);
-                showStatus('❌ 上傳失敗: ' + (err.message || '未知錯誤'), 'error');
+                showStatus('❌ 上傳失敗: ' + err.message, 'error');
+                alert('上傳失敗: ' + err.message);
             } finally {
-                uploadArea.style.opacity = '1';
-                uploadArea.style.pointerEvents = 'auto';
+                document.getElementById('uploadArea').style.opacity = '1';
                 document.getElementById('fileInput').value = '';
             }
         }
@@ -941,72 +819,62 @@
         }
 
         // ============================================================
-        // 載入檔案列表
+        // 7. 載入檔案列表（普通用戶只看自己，管理員全看）
         // ============================================================
         async function loadFileList() {
-            if (!currentUser && !isAdmin) {
-                document.getElementById('fileList').innerHTML = '<div class="empty-state">請登入查看檔案</div>';
-                document.getElementById('fileCountNum').textContent = '0';
-                return;
-            }
             try {
-                let query = db.collection('files');
-                if (!isAdmin) {
-                    query = query.where('uploaderUid', '==', currentUser.uid);
-                }
-                const snapshot = await query.orderBy('createdAt', 'desc').get();
-                const count = snapshot.size;
+                let query = supabaseClient.from('files').select('*');
+                if (!isAdmin) query = query.eq('uploader', CURRENT_USER_ID);
+                const { data, error } = await query.order('created_at', { ascending: false });
+                if (error) throw error;
+
+                const count = data?.length || 0;
                 document.getElementById('fileCountNum').textContent = count;
 
                 const container = document.getElementById('fileList');
-                if (count === 0) {
-                    container.innerHTML = '<div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>';
+                if (!data || count === 0) {
+                    container.innerHTML = `<div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>`;
                     return;
                 }
 
                 let html = '';
-                snapshot.forEach(doc => {
-                    const f = doc.data();
-                    const sizeMB = (f.fileSize / 1024 / 1024).toFixed(1);
-                    const shortLink = window.location.origin + window.location.pathname + '?download=' + f.shortCode;
-                    const time = f.createdAt ? f.createdAt.toDate().toLocaleDateString() : '';
-                    const uploaderInfo = isAdmin ? ` · 上傳者: ${f.uploaderEmail || '匿名'}` : '';
+                data.forEach(f => {
+                    const sizeMB = (f.file_size / 1024 / 1024).toFixed(1);
+                    const shortLink = window.location.origin + window.location.pathname + '?download=' + f.short_code;
+                    const time = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
+                    const uploaderInfo = isAdmin ? ` · 上傳者: ${f.uploader_email || f.uploader || '匿名'}` : '';
 
                     html += `
                         <div class="file-item">
                             <div class="info">
                                 <div class="icon">📄</div>
                                 <div>
-                                    <div class="name">${f.fileName}</div>
-                                    <div class="meta">${sizeMB} MB · ${f.downloadCount || 0} 次下載 · ${time}${uploaderInfo}</div>
+                                    <div class="name">${f.file_name}</div>
+                                    <div class="meta">${sizeMB} MB · ${f.download_count || 0} 次下載 · ${time}${uploaderInfo}</div>
                                     <div class="short-link">🔗 ${shortLink}</div>
                                 </div>
                             </div>
                             <div class="actions">
                                 <button onclick="copyLink('${shortLink}')">複製</button>
-                                <button class="download-btn" onclick="downloadFileDirect('${f.downloadURL}', '${f.fileName}')">⬇️ 下載</button>
-                                ${isAdmin ? `<button class="delete-btn" onclick="deleteFile('${doc.id}')">🗑️ 刪除</button>` : ''}
+                                <button class="download-btn" onclick="downloadFileDirect('${f.download_url}', '${f.file_name}')">⬇️ 下載</button>
+                                ${isAdmin ? `<button class="delete-btn" onclick="deleteFile('${f.id}', '${f.download_url}')">🗑️ 刪除</button>` : ''}
                             </div>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
             } catch (err) {
-                document.getElementById('fileList').innerHTML = '<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ' + err
-                    .message + '</div>';
+                document.getElementById('fileList').innerHTML = `<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ${err.message}</div>`;
             }
         }
 
-        async function deleteFile(docId) {
+        async function deleteFile(id, downloadURL) {
             if (!confirm('確定要刪除這個檔案嗎？此動作無法復原！')) return;
             try {
-                const doc = await db.collection('files').doc(docId).get();
-                const data = doc.data();
-                if (data && data.downloadURL) {
-                    const ref = storage.refFromURL(data.downloadURL);
-                    await ref.delete();
-                }
-                await db.collection('files').doc(docId).delete();
+                const urlParts = downloadURL.split('/');
+                const filePath = urlParts.slice(urlParts.indexOf('files') + 1).join('/');
+                await supabaseClient.storage.from(BUCKET).remove([filePath]);
+                await supabaseClient.from('files').delete().eq('id', id);
                 showStatus('🗑️ 檔案已刪除', 'success');
                 loadFileList();
             } catch (err) {
@@ -1015,94 +883,7 @@
         }
 
         // ============================================================
-        // 分享連結處理
-        // ============================================================
-        async function handleShareLink() {
-            const params = new URLSearchParams(window.location.search);
-            const shortCode = params.get('download');
-            const debugBox = document.getElementById('debugBox');
-
-            if (params.has('admin')) {
-                document.getElementById('mainUI').style.display = 'none';
-                document.getElementById('downloadUI').style.display = 'none';
-                document.getElementById('adminModal').classList.add('show');
-                document.getElementById('adminUser').value = '';
-                document.getElementById('adminPass').value = '';
-                document.getElementById('adminError').classList.remove('show');
-                return;
-            }
-
-            if (!shortCode) {
-                if (auth.currentUser) {
-                    document.getElementById('mainUI').style.display = 'block';
-                    document.getElementById('downloadUI').style.display = 'none';
-                    authContainer.style.display = 'none';
-                } else {
-                    document.getElementById('mainUI').style.display = 'none';
-                    document.getElementById('downloadUI').style.display = 'none';
-                    authContainer.style.display = 'block';
-                }
-                return;
-            }
-
-            document.getElementById('mainUI').style.display = 'none';
-            document.getElementById('downloadUI').style.display = 'block';
-            authContainer.style.display = 'none';
-
-            debugBox.className = 'debug-box show info';
-            debugBox.textContent = `🔍 查詢短碼: ${shortCode} ...`;
-
-            try {
-                const snapshot = await db.collection('files').where('shortCode', '==', shortCode).get();
-                if (snapshot.empty) {
-                    debugBox.className = 'debug-box show error';
-                    debugBox.textContent = `❌ 找不到短碼: ${shortCode}\n可能原因：檔案已被刪除或短碼錯誤。`;
-                    document.getElementById('downloadFileName').textContent = '❌ 檔案不存在';
-                    document.getElementById('downloadFileMeta').textContent = '連結可能已過期';
-                    document.getElementById('directDownloadBtn').style.display = 'none';
-                    document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
-                    return;
-                }
-                const data = snapshot.docs[0].data();
-                const docId = snapshot.docs[0].id;
-
-                await db.collection('files').doc(docId).update({
-                    downloadCount: firebase.firestore.FieldValue.increment(1)
-                });
-
-                debugBox.className = 'debug-box show success';
-                debugBox.textContent = `✅ 找到檔案: ${data.fileName}`;
-
-                const sizeMB = (data.fileSize / 1024 / 1024).toFixed(1);
-                document.getElementById('downloadFileName').textContent = data.fileName;
-                document.getElementById('downloadFileMeta').textContent =
-                    `${sizeMB} MB · 公開分享 · 下載 ${data.downloadCount || 0} 次`;
-                document.getElementById('directDownloadBtn').style.display = 'inline-block';
-                document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
-
-                window._downloadURL = data.downloadURL;
-                window._downloadFileName = data.fileName;
-
-            } catch (err) {
-                debugBox.className = 'debug-box show error';
-                debugBox.textContent = `❌ 載入失敗: ${err.message}`;
-                document.getElementById('downloadFileName').textContent = '❌ 載入失敗';
-                document.getElementById('downloadFileMeta').textContent = err.message;
-                document.getElementById('directDownloadBtn').style.display = 'none';
-                document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
-            }
-        }
-
-        function directDownload() {
-            if (window._downloadURL && window._downloadFileName) {
-                downloadFileDirect(window._downloadURL, window._downloadFileName);
-            } else {
-                alert('無法下載，請重新整理頁面');
-            }
-        }
-
-        // ============================================================
-        // 管理員
+        // 8. 管理員
         // ============================================================
         function adminLogin() {
             const user = document.getElementById('adminUser').value.trim();
@@ -1113,9 +894,6 @@
                 document.getElementById('adminBadge').classList.add('show');
                 document.getElementById('exitAdminBtn').classList.add('show');
                 showStatus('👑 管理員模式已啟用', 'success');
-                document.getElementById('mainUI').style.display = 'block';
-                document.getElementById('downloadUI').style.display = 'none';
-                authContainer.style.display = 'none';
                 loadFileList();
             } else {
                 document.getElementById('adminError').classList.add('show');
@@ -1145,42 +923,127 @@
         }
 
         // ============================================================
-        // 初始化
+        // 9. 分享連結處理
         // ============================================================
-        function initApp() {
-            handleShareLink();
+        async function handleShareLink() {
+            const params = new URLSearchParams(window.location.search);
+            const shortCode = params.get('download');
+            const debugBox = document.getElementById('debugBox');
 
-            const area = document.getElementById('uploadArea');
-            if (area) {
-                area.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.style.borderColor = '#1e5ef7';
-                    this.style.background = '#f5f9ff';
-                });
-                area.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.style.borderColor = '#dce3ec';
-                    this.style.background = '#fafcff';
-                });
-                area.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.style.borderColor = '#dce3ec';
-                    this.style.background = '#fafcff';
-                    if (e.dataTransfer.files.length > 0) {
-                        document.getElementById('fileInput').files = e.dataTransfer.files;
-                        handleFileSelect({ target: document.getElementById('fileInput') });
-                    }
-                });
+            // ?admin 入口
+            if (params.has('admin')) {
+                document.getElementById('mainUI').style.display = 'none';
+                document.getElementById('downloadUI').style.display = 'none';
+                document.getElementById('adminModal').classList.add('show');
+                document.getElementById('adminUser').value = '';
+                document.getElementById('adminPass').value = '';
+                document.getElementById('adminError').classList.remove('show');
+                return;
             }
 
-            console.log('🍎 蘋果網盤 - 完整穩定版');
-            console.log('🔑 管理員入口: ?admin');
+            if (!shortCode) {
+                document.getElementById('mainUI').style.display = 'block';
+                document.getElementById('downloadUI').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('mainUI').style.display = 'none';
+            document.getElementById('downloadUI').style.display = 'block';
+
+            debugBox.className = 'debug-box show info';
+            debugBox.textContent = `🔍 查詢短碼: ${shortCode} ...`;
+
+            try {
+                const { data, error } = await supabaseClient.from('files').select('*').eq('short_code', shortCode)
+                    .maybeSingle();
+                if (error || !data) {
+                    debugBox.className = 'debug-box show error';
+                    debugBox.textContent = `❌ 找不到短碼: ${shortCode}\n可能原因：檔案已被刪除或短碼錯誤。`;
+                    document.getElementById('downloadFileName').textContent = '❌ 檔案不存在';
+                    document.getElementById('downloadFileMeta').textContent = '連結可能已過期';
+                    document.getElementById('directDownloadBtn').style.display = 'none';
+                    document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
+                    return;
+                }
+
+                debugBox.className = 'debug-box show success';
+                debugBox.textContent = `✅ 找到檔案: ${data.file_name}`;
+
+                supabaseClient.from('files').update({ download_count: (data.download_count || 0) + 1 }).eq('id', data.id)
+                    .then();
+
+                const sizeMB = (data.file_size / 1024 / 1024).toFixed(1);
+                document.getElementById('downloadFileName').textContent = data.file_name;
+                document.getElementById('downloadFileMeta').textContent =
+                    `${sizeMB} MB · 公開分享 · 下載 ${data.download_count || 0} 次`;
+                document.getElementById('directDownloadBtn').style.display = 'inline-block';
+                document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
+
+                window._downloadURL = data.download_url;
+                window._downloadFileName = data.file_name;
+
+            } catch (err) {
+                debugBox.className = 'debug-box show error';
+                debugBox.textContent = `❌ 載入失敗: ${err.message}`;
+                document.getElementById('downloadFileName').textContent = '❌ 載入失敗';
+                document.getElementById('downloadFileMeta').textContent = err.message;
+                document.getElementById('directDownloadBtn').style.display = 'none';
+                document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', initApp);
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            initApp();
+        function directDownload() {
+            if (window._downloadURL && window._downloadFileName) {
+                downloadFileDirect(window._downloadURL, window._downloadFileName);
+            } else {
+                alert('無法下載，請重新整理頁面');
+            }
         }
+
+        // ============================================================
+        // 10. 拖曳
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const area = document.getElementById('uploadArea');
+            area.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#1e5ef7';
+                this.style.background = '#f5f9ff';
+            });
+            area.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#dce3ec';
+                this.style.background = '#fafcff';
+            });
+            area.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#dce3ec';
+                this.style.background = '#fafcff';
+                if (e.dataTransfer.files.length > 0) {
+                    document.getElementById('fileInput').files = e.dataTransfer.files;
+                    handleFileSelect({ target: document.getElementById('fileInput') });
+                }
+            });
+        });
+
+        // ============================================================
+        // 11. 啟動
+        // ============================================================
+        window.onload = function() {
+            handleShareLink();
+            const params = new URLSearchParams(window.location.search);
+            if (!params.get('download') && !params.has('admin')) {
+                document.getElementById('mainUI').style.display = 'block';
+                document.getElementById('downloadUI').style.display = 'none';
+                loadFileList();
+                showStatus('✅ 就緒', 'success');
+                console.log('👤 用戶 ID:', CURRENT_USER_ID);
+            }
+        };
+
+        console.log('🍎 蘋果網盤 · 白色精美版');
+        console.log('🔑 管理員入口: ?admin');
+        console.log('👤 當前用戶:', CURRENT_USER_ID);
     </script>
 </body>
 </html>
