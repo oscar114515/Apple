@@ -15,6 +15,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
     <style>
+        /* ===== 全部樣式（與之前相同，新增上傳彈窗和密碼彈窗樣式） ===== */
         * {
             margin: 0;
             padding: 0;
@@ -50,14 +51,47 @@
             border-bottom: 1px solid #ddd;
             width: 100%;
         }
-        .logo a {
+        .logo-area {
             display: flex;
             align-items: center;
+            gap: 12px;
         }
-        .logo img {
-            height: 50px;
-            width: auto;
-            display: block;
+        .studio-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #4a5a6e;
+            background: #eef1f6;
+            padding: 4px 12px 4px 8px;
+            border-radius: 30px;
+            border: 1px solid #e2e8f0;
+            letter-spacing: 0.3px;
+        }
+        .studio-badge i {
+            font-size: 16px;
+            color: #1e5ef7;
+        }
+        .navbar .logo-text {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #0b0b1a;
+        }
+        .navbar .logo-text i {
+            font-size: 26px;
+            color: #1e5ef7;
+            background: linear-gradient(145deg, #1e5ef7, #3b7cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .navbar .logo-text span {
+            background: linear-gradient(145deg, #0b0b1a, #2d3342);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .nav-right {
             display: flex;
@@ -153,27 +187,6 @@
             margin-bottom: 24px;
             flex-wrap: wrap;
             gap: 12px;
-        }
-        .logo-text {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-            color: #0b0b1a;
-        }
-        .logo-text i {
-            font-size: 28px;
-            color: #1e5ef7;
-            background: linear-gradient(145deg, #1e5ef7, #3b7cff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .logo-text span {
-            background: linear-gradient(145deg, #0b0b1a, #2d3342);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
         .topbar-actions {
             display: flex;
@@ -370,6 +383,7 @@
         .btn-close-sm:hover {
             background: #f1f4f9;
         }
+
         .list-header {
             display: flex;
             justify-content: space-between;
@@ -380,10 +394,6 @@
             font-size: 14px;
             font-weight: 500;
             color: #5a6a7e;
-            display: none;
-        }
-        .file-count.show {
-            display: block;
         }
         .file-count span {
             background: #eef2f6;
@@ -397,7 +407,6 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
-            min-height: 0;
         }
         .file-item {
             display: flex;
@@ -441,6 +450,33 @@
             flex-wrap: wrap;
             gap: 4px 12px;
             margin-top: 2px;
+        }
+        .file-item .info .meta .expiry-badge {
+            background: #fff8e1;
+            color: #e65100;
+            padding: 0 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .file-item .info .meta .expiry-badge.urgent {
+            background: #ffebee;
+            color: #b71c1c;
+            animation: pulseUrgent 2s ease-in-out infinite;
+        }
+        @keyframes pulseUrgent {
+            0%,100% { opacity:1; }
+            50% { opacity:0.5; }
+        }
+        .file-item .info .meta .password-badge {
+            background: #e8eaf6;
+            color: #283593;
+            padding: 0 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-block;
         }
         .file-item .info .uploader-name {
             font-weight: 500;
@@ -499,6 +535,8 @@
             padding: 40px 0;
             font-size: 15px;
         }
+
+        /* ===== 下載頁面 ===== */
         .download-page {
             text-align: center;
             padding: 40px 20px 20px;
@@ -516,16 +554,49 @@
         .download-page .meta {
             color: #8a98aa;
             font-size: 15px;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
         .download-page .uploader-info {
             color: #1e5ef7;
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             background: #f0f7ff;
             padding: 8px 20px;
             border-radius: 40px;
             display: inline-block;
+        }
+        /* ===== 密碼輸入區 ===== */
+        .download-page .password-section {
+            margin: 16px auto;
+            max-width: 320px;
+            display: none;
+        }
+        .download-page .password-section.show {
+            display: block;
+        }
+        .download-page .password-section input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dce3ec;
+            border-radius: 30px;
+            font-size: 15px;
+            outline: none;
+            text-align: center;
+            background: #fafcff;
+            transition: 0.2s;
+        }
+        .download-page .password-section input:focus {
+            border-color: #1e5ef7;
+            box-shadow: 0 0 0 3px rgba(30,94,247,0.08);
+        }
+        .download-page .password-section .password-error {
+            color: #b91c1c;
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+        .download-page .password-section .password-error.show {
+            display: block;
         }
         .download-page .btn-download-big {
             background: #1e5ef7;
@@ -536,13 +607,18 @@
             font-size: 17px;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(30, 94, 247, 0.25);
+            box-shadow: 0 6px 20px rgba(30,94,247,0.25);
             transition: 0.2s;
         }
         .download-page .btn-download-big:hover {
             background: #2b6af7;
             transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(30, 94, 247, 0.3);
+            box-shadow: 0 10px 28px rgba(30,94,247,0.3);
+        }
+        .download-page .btn-download-big:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
         .download-page .back-link {
             display: inline-block;
@@ -589,6 +665,158 @@
             background: #f0f7ff;
             color: #1a5bbf;
         }
+
+        /* ===== 上傳設定彈窗 ===== */
+        .upload-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 8000;
+            padding: 20px;
+        }
+        .upload-modal-overlay.show {
+            display: flex;
+        }
+        .upload-modal-box {
+            background: white;
+            border-radius: 32px;
+            padding: 32px 28px 28px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12);
+            animation: fadeIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .upload-modal-box h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0b0b1a;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        .upload-modal-box .sub {
+            color: #8a98aa;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .upload-modal-box .form-group {
+            margin-bottom: 16px;
+        }
+        .upload-modal-box .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #3d4a5e;
+            margin-bottom: 4px;
+        }
+        .upload-modal-box .form-group label .optional {
+            font-weight: 400;
+            color: #8a98aa;
+            font-size: 12px;
+        }
+        .upload-modal-box .form-group input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dce3ec;
+            border-radius: 16px;
+            font-size: 15px;
+            outline: none;
+            background: #fafcff;
+            transition: 0.2s;
+        }
+        .upload-modal-box .form-group input[type="password"]:focus {
+            border-color: #1e5ef7;
+            box-shadow: 0 0 0 3px rgba(30,94,247,0.08);
+        }
+        .upload-modal-box .form-group .hint-text {
+            font-size: 12px;
+            color: #8a98aa;
+            margin-top: 4px;
+        }
+        .upload-modal-box .time-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .upload-modal-box .time-grid .time-option {
+            padding: 10px 4px;
+            border: 2px solid #e8edf4;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #3d4a5e;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafcff;
+        }
+        .upload-modal-box .time-grid .time-option:hover {
+            border-color: #b8c8e0;
+            background: #f5f8fe;
+        }
+        .upload-modal-box .time-grid .time-option.active {
+            border-color: #1e5ef7;
+            background: #eef4fe;
+            color: #1e5ef7;
+            box-shadow: 0 0 0 3px rgba(30,94,247,0.08);
+        }
+        .upload-modal-box .time-grid .time-option .label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .upload-modal-box .time-grid .time-option .sub-label {
+            font-size: 10px;
+            color: #8a98aa;
+            font-weight: 400;
+        }
+        .upload-modal-box .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .upload-modal-box .modal-actions button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .upload-modal-box .modal-actions .btn-cancel {
+            background: #f0f2f5;
+            color: #5a6a7e;
+        }
+        .upload-modal-box .modal-actions .btn-cancel:hover {
+            background: #e5e8ed;
+        }
+        .upload-modal-box .modal-actions .btn-confirm {
+            background: #1e5ef7;
+            color: white;
+        }
+        .upload-modal-box .modal-actions .btn-confirm:hover {
+            background: #2b6af7;
+        }
+        .upload-modal-box .modal-actions .btn-confirm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ===== 管理員/用戶管理 ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -637,7 +865,7 @@
         .modal-box input:focus {
             border-color: #1e5ef7;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(30, 94, 247, 0.08);
+            box-shadow: 0 0 0 3px rgba(30,94,247,0.08);
         }
         .modal-box button {
             width: 100%;
@@ -672,6 +900,8 @@
         .modal-box .cancel-btn:hover {
             background: #f1f4f9;
         }
+
+        /* ===== 登入彈窗 ===== */
         .auth-modal-overlay {
             position: fixed;
             top: 0;
@@ -693,10 +923,6 @@
             max-width: 400px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
         }
         .auth-modal-box .brand {
             text-align: center;
@@ -790,9 +1016,6 @@
         .auth-modal-box .google-btn:hover {
             background: #f5f5f5;
         }
-        .auth-modal-box .google-btn svg {
-            flex-shrink: 0;
-        }
         .auth-modal-box .divider {
             display: flex;
             align-items: center;
@@ -830,16 +1053,6 @@
             border: 1px solid #fee2e2;
             display: block;
         }
-        .auth-modal-box .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ccc;
-            border-top: 2px solid #1a1a1a;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin-right: 6px;
-        }
         .auth-modal-box .admin-btn-small {
             margin-top: 0.8rem;
             background: transparent;
@@ -852,6 +1065,8 @@
             font-size: 0.85rem;
             display: none;
         }
+
+        /* ===== 用戶管理彈窗 ===== */
         .admin-modal-overlay {
             position: fixed;
             top: 0;
@@ -923,6 +1138,8 @@
             font-size: 0.7rem;
             font-weight: 500;
         }
+
+        /* ===== 加載中彈窗 ===== */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -960,6 +1177,12 @@
             font-weight: 500;
             margin: 0;
         }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== 聯繫我們彈窗 ===== */
         .modal-overlay-contact {
             position: fixed;
             top: 0;
@@ -1047,9 +1270,12 @@
         .platform-btn-small.xhs { color: #ff2442; }
         .platform-btn-small.douyin { color: #000000; }
         .platform-btn-small.yt { color: #ff0000; }
-        @media (max-width: 600px) {
+
+        /* ===== 響應式 ===== */
+        @media (max-width: 768px) {
             .app { padding: 20px 16px 28px; border-radius: 28px; }
-            .logo-text { font-size: 20px; }
+            .navbar { padding: 0.5rem 1rem; }
+            .logo-text { font-size: 18px; }
             .upload-card { padding: 32px 16px; }
             .upload-card .icon { font-size: 36px; }
             .file-item { padding: 12px 14px; }
@@ -1065,11 +1291,16 @@
             .platform-btn-small { padding: 10px 0; font-size: 0.85rem; }
             .qq-number { font-size: 1.3rem; }
             .qq-icon { width: 50px; height: 50px; }
+            .upload-modal-box { padding: 24px 20px; }
+            .upload-modal-box .time-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+            .upload-modal-box .time-grid .time-option { padding: 8px 2px; font-size: 11px; }
+            .upload-modal-box .time-grid .time-option .label { font-size: 12px; }
         }
         @media (max-width: 480px) {
             .loading-box { padding: 1.2rem 1.2rem; min-width: 120px; }
             .loading-spinner-full { width: 28px; height: 28px; }
             .loading-box p { font-size: 0.85rem; }
+            .upload-modal-box .time-grid { grid-template-columns: repeat(3, 1fr); }
         }
     </style>
 </head>
@@ -1078,8 +1309,12 @@
     <!-- ===== 導航欄 ===== -->
     <div class="navbar-wrapper">
         <nav class="navbar">
-            <div class="logo">
-                <a href="#"><img src="https://i.postimg.cc/HxVC7TcN/IMG-8863.png" alt="Logo"></a>
+            <div class="logo-area">
+                <div class="studio-badge"><i class="fas fa-cloud"></i> 梁喆同學工作室</div>
+                <div class="logo-text">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>輕盤</span>
+                </div>
             </div>
             <div class="nav-right">
                 <ul class="nav-links">
@@ -1098,9 +1333,8 @@
 
     <!-- ===== 輕盤主內容 ===== -->
     <div class="app" id="app">
-
         <div class="topbar">
-            <div class="logo-text">
+            <div class="logo-text" style="font-size:20px;">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <span>輕盤</span>
             </div>
@@ -1115,13 +1349,12 @@
         <div id="status"></div>
 
         <div id="mainUI">
-
-            <div class="upload-card" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-card" id="uploadArea">
                 <span class="icon">📤</span>
                 <p>點擊或拖曳上傳檔案</p>
                 <div class="hint">所有檔案類型 · 無大小限制</div>
             </div>
-            <input type="file" id="fileInput" onchange="handleFileSelect(event)" />
+            <input type="file" id="fileInput" />
 
             <div class="upload-success" id="uploadSuccess">
                 <div class="file-info">
@@ -1135,11 +1368,12 @@
                 </div>
             </div>
 
-            <!-- ===== 檔案列表（未登入完全空白） ===== -->
             <div class="list-header">
-                <div class="file-count" id="fileCount">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
+                <div class="file-count">📁 共 <span id="fileCountNum">0</span> 個檔案</div>
             </div>
-            <div id="fileList"></div>
+            <div id="fileList">
+                <div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>
+            </div>
         </div>
 
         <div id="downloadUI" style="display:none;">
@@ -1148,6 +1382,11 @@
                 <h2 id="downloadFileName">檔案名稱</h2>
                 <div class="meta" id="downloadFileMeta">大小 · 公開分享</div>
                 <div class="uploader-info" id="downloadUploader">👤 上傳者：<span id="downloadUploaderName">未知</span></div>
+                <!-- ===== 密碼輸入區 ===== -->
+                <div class="password-section" id="passwordSection">
+                    <input type="password" id="passwordInput" placeholder="請輸入檔案密碼" />
+                    <div class="password-error" id="passwordError">❌ 密碼錯誤，請重新輸入</div>
+                </div>
                 <button class="btn-download-big" id="directDownloadBtn" onclick="directDownload()">⬇️ 立即下載</button>
                 <div style="margin-top:8px; font-size:13px; color:#9aabbe;">⚡ 全速下載 · 無需登入</div>
                 <div id="debugBox" class="debug-box"></div>
@@ -1156,7 +1395,41 @@
         </div>
     </div>
 
-    <!-- ===== 管理員登入 ===== -->
+    <!-- ===== 上傳設定彈窗 ===== -->
+    <div class="upload-modal-overlay" id="uploadModal">
+        <div class="upload-modal-box">
+            <h2>📤 上傳設定</h2>
+            <div class="sub" id="uploadFileNameDisplay">檔案：未命名</div>
+
+            <div class="form-group">
+                <label>🔐 檔案密碼 <span class="optional">（可選）</span></label>
+                <input type="password" id="filePassword" placeholder="留空則無需密碼" />
+                <div class="hint-text">下載時需要輸入此密碼才能下載</div>
+            </div>
+
+            <div class="form-group">
+                <label>⏳ 自動刪除時間</label>
+                <div class="time-grid" id="timeGrid">
+                    <div class="time-option active" data-value="1h"><div class="label">1h</div><div class="sub-label">1 小時</div></div>
+                    <div class="time-option" data-value="5h"><div class="label">5h</div><div class="sub-label">5 小時</div></div>
+                    <div class="time-option" data-value="10h"><div class="label">10h</div><div class="sub-label">10 小時</div></div>
+                    <div class="time-option" data-value="1d"><div class="label">1d</div><div class="sub-label">1 天</div></div>
+                    <div class="time-option" data-value="7d"><div class="label">7d</div><div class="sub-label">1 星期</div></div>
+                    <div class="time-option" data-value="15d"><div class="label">15d</div><div class="sub-label">半月</div></div>
+                    <div class="time-option" data-value="30d"><div class="label">30d</div><div class="sub-label">1 個月</div></div>
+                    <div class="time-option" data-value="forever"><div class="label">∞</div><div class="sub-label">無限</div></div>
+                </div>
+                <div class="hint-text">時間到後檔案將自動從伺服器刪除</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeUploadModal()">取消</button>
+                <button class="btn-confirm" id="confirmUploadBtn" onclick="confirmUpload()">確認上傳</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 管理員登入模態框 ===== -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
             <h2>🔐 管理員登入</h2>
@@ -1194,7 +1467,7 @@
                         <svg width="20" height="20" viewBox="0 0 48 48">
                             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         </svg>
                         使用 Google 登入
@@ -1211,7 +1484,7 @@
                         <svg width="20" height="20" viewBox="0 0 48 48">
                             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         </svg>
                         使用 Google 註冊
@@ -1222,7 +1495,7 @@
         </div>
     </div>
 
-    <!-- ===== 用戶管理 ===== -->
+    <!-- ===== 用戶管理彈窗 ===== -->
     <div class="admin-modal-overlay" id="adminModalUsers">
         <div class="admin-modal-box">
             <button class="modal-close" id="closeAdminModalUsers"><i class="fas fa-times"></i></button>
@@ -1231,7 +1504,7 @@
         </div>
     </div>
 
-    <!-- ===== 加載中 ===== -->
+    <!-- ===== 加載中彈窗 ===== -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-box">
             <div class="loading-spinner-full"></div>
@@ -1239,7 +1512,7 @@
         </div>
     </div>
 
-    <!-- ===== 聯繫我們 ===== -->
+    <!-- ===== 聯繫我們彈窗 ===== -->
     <div class="modal-overlay-contact" id="contactModal">
         <div class="modal-box-contact" onclick="event.stopPropagation()">
             <div class="contact-info">
@@ -1511,7 +1784,6 @@
             hideUI();
         }
 
-        // 綁定登入
         googleLoginBtn.addEventListener('click', googleLogin);
         googleRegisterBtn.addEventListener('click', googleLogin);
         loginSubmit.addEventListener('click', googleLogin);
@@ -1557,12 +1829,14 @@
         };
 
         // ============================================================
-        // 7. 輕盤核心
+        // 7. 輕盤核心功能（含密碼 + 自動刪除時間）
         // ============================================================
         let isAdmin = false;
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
+        let pendingFile = null; // 暫存待上傳的檔案
+        let selectedTime = '1h';
 
         function getCurrentUserName() {
             const local = localStorage.getItem('currentUser');
@@ -1625,11 +1899,63 @@
         }
 
         // ============================================================
-        // 🔥 核心下載：永不跳轉
+        // 🔥 核心下載：永不跳轉 + 密碼驗證
         // ============================================================
-        async function downloadFileDirect(url, fileName) {
+        let currentDownloadFileId = null;
+        let currentDownloadPassword = null;
+
+        async function downloadFileDirect(url, fileName, fileId, password) {
+            // 如果有密碼且尚未驗證，先驗證
+            if (password && !window._passwordVerified) {
+                // 顯示密碼輸入框
+                const section = document.getElementById('passwordSection');
+                section.classList.add('show');
+                document.getElementById('passwordInput').focus();
+                document.getElementById('passwordError').classList.remove('show');
+                document.getElementById('directDownloadBtn').disabled = true;
+                document.getElementById('directDownloadBtn').textContent = '🔐 請輸入密碼';
+
+                // 儲存當前下載資訊
+                currentDownloadFileId = fileId;
+                currentDownloadPassword = password;
+
+                // 綁定密碼輸入事件
+                const input = document.getElementById('passwordInput');
+                const btn = document.getElementById('directDownloadBtn');
+
+                const checkPassword = () => {
+                    const entered = input.value.trim();
+                    if (entered === password) {
+                        document.getElementById('passwordError').classList.remove('show');
+                        window._passwordVerified = true;
+                        section.classList.remove('show');
+                        btn.disabled = false;
+                        btn.textContent = '⬇️ 立即下載';
+                        // 重新觸發下載
+                        downloadFileDirect(url, fileName, fileId, password);
+                    } else {
+                        document.getElementById('passwordError').classList.add('show');
+                        input.value = '';
+                        input.focus();
+                    }
+                };
+
+                // 移除舊監聽器，避免重複綁定
+                btn.onclick = null;
+                btn.onclick = checkPassword;
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') checkPassword();
+                };
+
+                return;
+            }
+
+            // 重置密碼狀態（下次下載重新驗證）
+            window._passwordVerified = false;
+
             if (!fileName) fileName = url.split('/').pop() || '下載檔案';
-            const btn = document.activeElement;
+            const btn = document.activeElement || document.getElementById('directDownloadBtn');
+
             try {
                 if (btn) { btn.textContent = '⏳';
                     btn.disabled = true; }
@@ -1637,13 +1963,16 @@
                 if (!response.ok) throw new Error('下載失敗 (HTTP ' + response.status + ')');
                 const blob = await response.blob();
                 const objectURL = URL.createObjectURL(blob);
+
                 const a = document.createElement('a');
                 a.href = objectURL;
                 a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+
                 setTimeout(() => URL.revokeObjectURL(objectURL), 5000);
+
                 if (btn) { btn.textContent = '✅';
                     setTimeout(() => { btn.textContent = '⬇️ 下載';
                         btn.disabled = false; }, 1500); }
@@ -1655,17 +1984,103 @@
         }
 
         // ============================================================
-        // 8. 上傳
+        // 8. 上傳（帶設定彈窗）
         // ============================================================
-        async function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
+        document.getElementById('uploadArea').addEventListener('click', function() {
             if (!auth.currentUser) {
                 alert('⚠️ 請先登入才能上傳檔案！');
-                document.getElementById('fileInput').value = '';
                 return;
             }
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            pendingFile = file;
+            // 顯示上傳設定彈窗
+            document.getElementById('uploadFileNameDisplay').textContent = '📄 ' + file.name + ' (' + (file.size / 1024 /
+                1024).toFixed(1) + ' MB)';
+            document.getElementById('uploadModal').classList.add('show');
+            document.getElementById('filePassword').value = '';
+            // 重置時間選擇
+            document.querySelectorAll('#timeGrid .time-option').forEach(el => el.classList.remove('active'));
+            document.querySelector('#timeGrid .time-option[data-value="1h"]').classList.add('active');
+            selectedTime = '1h';
+            document.getElementById('confirmUploadBtn').disabled = false;
+            this.value = '';
+        });
+
+        // 時間選擇
+        document.querySelectorAll('#timeGrid .time-option').forEach(el => {
+            el.addEventListener('click', function() {
+                document.querySelectorAll('#timeGrid .time-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                selectedTime = this.dataset.value;
+            });
+        });
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.remove('show');
+            pendingFile = null;
+            document.getElementById('fileInput').value = '';
+        }
+
+        function getExpiryTime(timeValue) {
+            const now = new Date();
+            switch (timeValue) {
+                case '1h':
+                    now.setHours(now.getHours() + 1);
+                    break;
+                case '5h':
+                    now.setHours(now.getHours() + 5);
+                    break;
+                case '10h':
+                    now.setHours(now.getHours() + 10);
+                    break;
+                case '1d':
+                    now.setDate(now.getDate() + 1);
+                    break;
+                case '7d':
+                    now.setDate(now.getDate() + 7);
+                    break;
+                case '15d':
+                    now.setDate(now.getDate() + 15);
+                    break;
+                case '30d':
+                    now.setDate(now.getDate() + 30);
+                    break;
+                case 'forever':
+                    return null;
+                default:
+                    now.setHours(now.getHours() + 1);
+            }
+            return now.toISOString();
+        }
+
+        function getExpiryLabel(timeValue) {
+            const map = {
+                '1h': '1 小時',
+                '5h': '5 小時',
+                '10h': '10 小時',
+                '1d': '1 天',
+                '7d': '1 星期',
+                '15d': '半月',
+                '30d': '1 個月',
+                'forever': '無限'
+            };
+            return map[timeValue] || '1 小時';
+        }
+
+        async function confirmUpload() {
+            const file = pendingFile;
+            if (!file) return;
+
+            const password = document.getElementById('filePassword').value.trim();
+            const expiryTime = getExpiryTime(selectedTime);
+            const btn = document.getElementById('confirmUploadBtn');
+            btn.disabled = true;
+            btn.textContent = '上傳中...';
 
             showStatus('⏳ 上傳中...', 'info');
             document.getElementById('uploadArea').style.opacity = '0.6';
@@ -1688,6 +2103,7 @@
                 const uploaderEmail = getCurrentUserEmail();
                 const uploaderUid = getCurrentUserUid();
 
+                // ✅ 插入時包含 password 和 expiry_time
                 const { error: de } = await supabaseClient.from('files').insert({
                     file_name: file.name,
                     file_size: file.size,
@@ -1696,7 +2112,10 @@
                     short_code: shortCode,
                     uploader: uploaderUid,
                     uploader_name: uploaderName,
-                    uploader_email: uploaderEmail
+                    uploader_email: uploaderEmail,
+                    password: password || null,
+                    expiry_time: expiryTime,
+                    created_at: new Date().toISOString()
                 });
                 if (de) throw de;
 
@@ -1704,22 +2123,31 @@
                 const sizeMB = (file.size / 1024 / 1024).toFixed(1);
                 document.getElementById('successFileName').textContent = file.name;
                 document.getElementById('successFileMeta').textContent =
-                `${sizeMB} MB · 上傳者：${uploaderName}`;
+                    `${sizeMB} MB · 上傳者：${uploaderName} · 刪除時間：${getExpiryLabel(selectedTime)}${password ? ' · 🔐 有密碼' : ''}`;
                 document.getElementById('uploadSuccess').classList.add('show');
                 showStatus('✅ 上傳成功！', 'success');
+                closeUploadModal();
                 loadFileList();
+
             } catch (err) {
                 showStatus('❌ 上傳失敗: ' + err.message, 'error');
                 alert('上傳失敗: ' + err.message);
             } finally {
                 document.getElementById('uploadArea').style.opacity = '1';
-                document.getElementById('fileInput').value = '';
+                btn.disabled = false;
+                btn.textContent = '確認上傳';
+                pendingFile = null;
             }
         }
 
         function downloadSuccessFile() {
-            if (lastUploaded.downloadURL) downloadFileDirect(lastUploaded.downloadURL, lastUploaded.fileName);
-            else alert('沒有可下載的檔案');
+            if (lastUploaded.downloadURL) {
+                // 如果有密碼，需要獲取檔案ID
+                // 這裡暫時直接下載（後續可優化）
+                downloadFileDirect(lastUploaded.downloadURL, lastUploaded.fileName);
+            } else {
+                alert('沒有可下載的檔案');
+            }
         }
 
         function copySuccessLink() {
@@ -1728,55 +2156,68 @@
         }
 
         // ============================================================
-        // 🔥 9. 載入檔案列表（未登入完全空白）
+        // 9. 載入檔案列表（顯示密碼和到期時間）
         // ============================================================
         async function loadFileList() {
-            const container = document.getElementById('fileList');
-            const countEl = document.getElementById('fileCountNum');
-            const countWrap = document.getElementById('fileCount');
-            const user = auth.currentUser;
-
-            // 未登入 → 完全空白（什麼文字都沒有）
-            if (!user) {
-                container.innerHTML = '';
-                countEl.textContent = '';
-                countWrap.classList.remove('show');
-                return;
-            }
-
-            // 已登入 → 顯示自己的檔案
             try {
-                const uid = getCurrentUserUid();
-                if (!uid) {
-                    container.innerHTML = '';
-                    countEl.textContent = '';
-                    countWrap.classList.remove('show');
-                    return;
+                let query = supabaseClient.from('files').select('*');
+                if (!isAdmin) {
+                    const uid = getCurrentUserUid();
+                    if (uid) {
+                        query = query.eq('uploader', uid);
+                    } else {
+                        query = query.eq('uploader', '');
+                    }
                 }
-
-                const { data, error } = await supabaseClient
-                    .from('files')
-                    .select('*')
-                    .eq('uploader', uid)
-                    .order('created_at', { ascending: false });
-
+                const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
 
                 const count = data?.length || 0;
-                countEl.textContent = count;
-                countWrap.classList.add('show');
+                document.getElementById('fileCountNum').textContent = count;
 
+                const container = document.getElementById('fileList');
                 if (!data || count === 0) {
                     container.innerHTML = `<div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>`;
                     return;
                 }
 
                 let html = '';
+                const now = new Date();
                 data.forEach(f => {
                     const sizeMB = (f.file_size / 1024 / 1024).toFixed(1);
                     const shortLink = window.location.origin + window.location.pathname + '?download=' + f.short_code;
                     const time = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
+
+                    // 計算剩餘時間
+                    let expiryLabel = '';
+                    let expiryClass = '';
+                    if (f.expiry_time) {
+                        const expiry = new Date(f.expiry_time);
+                        const diff = expiry - now;
+                        if (diff <= 0) {
+                            expiryLabel = '⚠️ 已過期';
+                            expiryClass = 'urgent';
+                        } else if (diff < 3600000) {
+                            // 小於1小時
+                            const mins = Math.ceil(diff / 60000);
+                            expiryLabel = `⏳ ${mins} 分鐘後刪除`;
+                            expiryClass = 'urgent';
+                        } else if (diff < 86400000) {
+                            // 小於1天
+                            const hours = Math.ceil(diff / 3600000);
+                            expiryLabel = `⏳ ${hours} 小時後刪除`;
+                        } else {
+                            const days = Math.ceil(diff / 86400000);
+                            expiryLabel = `⏳ ${days} 天後刪除`;
+                        }
+                    } else {
+                        expiryLabel = '♾️ 永久保留';
+                    }
+
+                    const passwordBadge = f.password ? '🔐 有密碼' : '';
+
                     const uploaderDisplay = f.uploader_name || f.uploader_email || '匿名用戶';
+                    const uploaderInfo = isAdmin ? ` · 上傳者: ${uploaderDisplay}` : ` · 👤 ${uploaderDisplay}`;
 
                     html += `
                         <div class="file-item">
@@ -1784,13 +2225,17 @@
                                 <div class="icon">📄</div>
                                 <div>
                                     <div class="name">${f.file_name}</div>
-                                    <div class="meta">${sizeMB} MB · ${f.download_count || 0} 次下載 · ${time} · 👤 ${uploaderDisplay}</div>
+                                    <div class="meta">
+                                        ${sizeMB} MB · ${f.download_count || 0} 次下載 · ${time}${uploaderInfo}
+                                        <span class="expiry-badge ${expiryClass}">${expiryLabel}</span>
+                                        ${passwordBadge ? `<span class="password-badge">${passwordBadge}</span>` : ''}
+                                    </div>
                                     <div class="short-link">🔗 ${shortLink}</div>
                                 </div>
                             </div>
                             <div class="actions">
                                 <button onclick="copyLink('${shortLink}')">複製</button>
-                                <button class="download-btn" onclick="downloadFileDirect('${f.download_url}', '${f.file_name}')">⬇️ 下載</button>
+                                <button class="download-btn" onclick="handleDownloadClick('${f.id}', '${f.download_url}', '${f.file_name}', '${f.password || ''}')">⬇️ 下載</button>
                                 ${isAdmin ? `<button class="delete-btn" onclick="deleteFile('${f.id}', '${f.download_url}')">🗑️ 刪除</button>` : ''}
                             </div>
                         </div>
@@ -1798,8 +2243,24 @@
                 });
                 container.innerHTML = html;
             } catch (err) {
-                container.innerHTML = `<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ${err.message}</div>`;
+                document.getElementById('fileList').innerHTML =
+                    `<div class="empty-state" style="color:#b91c1c;">❌ 載入失敗: ${err.message}</div>`;
             }
+        }
+
+        // 處理下載點擊（帶密碼驗證）
+        function handleDownloadClick(fileId, url, fileName, password) {
+            window._passwordVerified = false;
+            // 重置密碼輸入框
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordError').classList.remove('show');
+            document.getElementById('passwordSection').classList.remove('show');
+            document.getElementById('directDownloadBtn').disabled = false;
+            document.getElementById('directDownloadBtn').textContent = '⬇️ 立即下載';
+
+            // 如果是從列表點擊，直接跳轉到下載頁面會更簡單
+            // 這裡我們直接調用下載函數，如果檔案有密碼，會自動彈出密碼輸入框
+            downloadFileDirect(url, fileName, fileId, password);
         }
 
         async function deleteFile(id, downloadURL) {
@@ -1857,7 +2318,7 @@
         }
 
         // ============================================================
-        // 11. 分享連結
+        // 11. 分享連結處理（含密碼和過期檢查）
         // ============================================================
         async function handleShareLink() {
             const params = new URLSearchParams(window.location.search);
@@ -1897,9 +2358,27 @@
                     return;
                 }
 
+                // 檢查是否過期
+                if (data.expiry_time) {
+                    const expiry = new Date(data.expiry_time);
+                    if (expiry < new Date()) {
+                        debugBox.className = 'debug-box show error';
+                        debugBox.textContent = `⏰ 此檔案已過期，已被系統自動刪除。`;
+                        document.getElementById('downloadFileName').textContent = '⏰ 檔案已過期';
+                        document.getElementById('downloadFileMeta').textContent = '檔案已自動刪除';
+                        document.getElementById('directDownloadBtn').style.display = 'none';
+                        document.getElementById('downloadUploader').style.display = 'none';
+                        document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
+                        // 從資料庫刪除過期檔案
+                        await supabaseClient.from('files').delete().eq('id', data.id);
+                        return;
+                    }
+                }
+
                 debugBox.className = 'debug-box show success';
                 debugBox.textContent = `✅ 找到檔案: ${data.file_name}`;
 
+                // 更新下載次數
                 supabaseClient.from('files').update({ download_count: (data.download_count || 0) + 1 }).eq('id', data.id)
                     .then();
 
@@ -1917,6 +2396,43 @@
 
                 window._downloadURL = data.download_url;
                 window._downloadFileName = data.file_name;
+                window._downloadFileId = data.id;
+                window._downloadPassword = data.password || '';
+
+                // 如果有密碼，顯示密碼輸入區
+                if (data.password) {
+                    document.getElementById('passwordSection').classList.add('show');
+                    document.getElementById('passwordInput').value = '';
+                    document.getElementById('passwordError').classList.remove('show');
+                    document.getElementById('directDownloadBtn').textContent = '🔐 輸入密碼後下載';
+                    document.getElementById('directDownloadBtn').disabled = true;
+
+                    // 綁定密碼驗證
+                    const input = document.getElementById('passwordInput');
+                    const btn = document.getElementById('directDownloadBtn');
+                    const verifyPassword = () => {
+                        const entered = input.value.trim();
+                        if (entered === data.password) {
+                            document.getElementById('passwordError').classList.remove('show');
+                            document.getElementById('passwordSection').classList.remove('show');
+                            btn.disabled = false;
+                            btn.textContent = '⬇️ 立即下載';
+                            window._passwordVerified = true;
+                            btn.onclick = directDownload;
+                        } else {
+                            document.getElementById('passwordError').classList.add('show');
+                            input.value = '';
+                            input.focus();
+                        }
+                    };
+                    input.onkeydown = (e) => { if (e.key === 'Enter') verifyPassword(); };
+                    btn.onclick = verifyPassword;
+                } else {
+                    document.getElementById('passwordSection').classList.remove('show');
+                    document.getElementById('directDownloadBtn').disabled = false;
+                    document.getElementById('directDownloadBtn').textContent = '⬇️ 立即下載';
+                    window._passwordVerified = true;
+                }
 
             } catch (err) {
                 debugBox.className = 'debug-box show error';
@@ -1931,7 +2447,15 @@
 
         function directDownload() {
             if (window._downloadURL && window._downloadFileName) {
-                downloadFileDirect(window._downloadURL, window._downloadFileName);
+                // 如果有密碼但尚未驗證，提示
+                if (window._downloadPassword && !window._passwordVerified) {
+                    document.getElementById('passwordError').textContent = '⚠️ 請先輸入密碼';
+                    document.getElementById('passwordError').classList.add('show');
+                    document.getElementById('passwordInput').focus();
+                    return;
+                }
+                downloadFileDirect(window._downloadURL, window._downloadFileName, window._downloadFileId, window
+                    ._downloadPassword);
             } else {
                 alert('無法下載，請重新整理頁面');
             }
@@ -1957,8 +2481,19 @@
                 this.style.borderColor = '#dce3ec';
                 this.style.background = '#fafcff';
                 if (e.dataTransfer.files.length > 0) {
-                    document.getElementById('fileInput').files = e.dataTransfer.files;
-                    handleFileSelect({ target: document.getElementById('fileInput') });
+                    if (!auth.currentUser) {
+                        alert('⚠️ 請先登入才能上傳檔案！');
+                        return;
+                    }
+                    pendingFile = e.dataTransfer.files[0];
+                    document.getElementById('uploadFileNameDisplay').textContent = '📄 ' + pendingFile.name + ' (' + (pendingFile
+                        .size / 1024 / 1024).toFixed(1) + ' MB)';
+                    document.getElementById('uploadModal').classList.add('show');
+                    document.getElementById('filePassword').value = '';
+                    document.querySelectorAll('#timeGrid .time-option').forEach(el => el.classList.remove('active'));
+                    document.querySelector('#timeGrid .time-option[data-value="1h"]').classList.add('active');
+                    selectedTime = '1h';
+                    document.getElementById('confirmUploadBtn').disabled = false;
                 }
             });
         });
@@ -2010,7 +2545,42 @@
         authModal.addEventListener('click', (e) => { if (e.target === authModal) closeAuthModal(); });
 
         // ============================================================
-        // 14. 啟動
+        // 14. 定期清理過期檔案（每分鐘檢查一次）
+        // ============================================================
+        async function cleanExpiredFiles() {
+            try {
+                const now = new Date().toISOString();
+                const { data, error } = await supabaseClient
+                    .from('files')
+                    .select('id, download_url')
+                    .lt('expiry_time', now);
+
+                if (error) throw error;
+                if (!data || data.length === 0) return;
+
+                for (const file of data) {
+                    try {
+                        const urlParts = file.download_url.split('/');
+                        const filePath = urlParts.slice(urlParts.indexOf('files') + 1).join('/');
+                        await supabaseClient.storage.from(BUCKET).remove([filePath]);
+                        await supabaseClient.from('files').delete().eq('id', file.id);
+                        console.log('🗑️ 已刪除過期檔案:', file.id);
+                    } catch (e) {
+                        console.error('刪除過期檔案失敗:', e);
+                    }
+                }
+                // 刷新列表
+                loadFileList();
+            } catch (err) {
+                console.error('清理過期檔案失敗:', err);
+            }
+        }
+
+        // 每分鐘檢查一次
+        setInterval(cleanExpiredFiles, 60000);
+
+        // ============================================================
+        // 15. 啟動
         // ============================================================
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -2033,17 +2603,19 @@
             if (!params.get('download') && !params.has('admin')) {
                 document.getElementById('mainUI').style.display = 'block';
                 document.getElementById('downloadUI').style.display = 'none';
-                // 只有登入才載入檔案，未登入時 loadFileList 會自動留白
                 loadFileList();
                 showStatus('✅ 就緒', 'success');
-                console.log('☁️ 輕盤已啟動');
+                console.log('☁️ 輕盤已啟動（密碼 + 自動刪除時間）');
                 console.log('👤 已登入:', !!auth.currentUser);
             }
+            // 首次啟動時清理過期檔案
+            setTimeout(cleanExpiredFiles, 3000);
         };
 
-        console.log('☁️ 輕盤 · 最終完整版');
+        console.log('☁️ 輕盤 · 已整合密碼保護 + 自動刪除時間');
         console.log('🔑 管理員入口: ?admin');
         console.log('👤 當前用戶:', auth.currentUser?.displayName || '未登入');
     </script>
+
 </body>
 </html>
