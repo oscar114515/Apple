@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* ===== 樣式與之前一樣，省略重複 ===== */
+        /* ===== 样式与之前完全一样，省略重复 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -43,6 +43,7 @@
             font-size: 14px;
             margin-bottom: 20px;
         }
+        /* 隐藏按钮仍然存在，但不再自动填入密码，且点击3次仍可唤出登录（备选） */
         #adminSecretBtn {
             position: absolute;
             top: 4px;
@@ -426,8 +427,8 @@
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box">
             <h2>🔐 管理員登入</h2>
-            <input type="text" id="adminUser" placeholder="帳號" value="admin">
-            <input type="password" id="adminPass" placeholder="密碼" value="7891">
+            <input type="text" id="adminUser" placeholder="帳號">
+            <input type="password" id="adminPass" placeholder="密碼">
             <button onclick="adminLogin()">登入</button>
             <p class="error-msg" id="adminError">帳號或密碼錯誤</p>
             <button onclick="document.getElementById('adminModal').classList.remove('show')" style="background:#ccc;color:#333;margin-top:8px;">取消</button>
@@ -453,13 +454,11 @@
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
-        let currentDownloadFileName = '';
 
         // ============================================================
-        // 2. 🔥 核心下載函數（絕不跳轉，強制下載）
+        // 2. 🔥 核心下載函數（絕不跳轉）
         // ============================================================
         async function downloadFileDirect(url, fileName) {
-            // 如果沒有副檔名，從 URL 猜測
             if (!fileName || fileName === '') {
                 const urlParts = url.split('/');
                 const lastPart = urlParts[urlParts.length - 1];
@@ -470,52 +469,33 @@
                 }
             }
 
-            // 顯示下載中狀態
-            const btns = document.querySelectorAll('button');
-            let targetBtn = null;
-            for (let btn of btns) {
-                if (btn.textContent.includes('下載') || btn.textContent.includes('下載')) {
-                    // 粗略尋找
-                }
-            }
-            // 我們用全域變數記錄按鈕
             window._downloadBtn = document.activeElement;
 
             try {
-                // 顯示下載中
                 if (window._downloadBtn) {
                     window._downloadBtn.textContent = '⏳ 下載中...';
                     window._downloadBtn.disabled = true;
                 }
 
-                // 使用 fetch 獲取檔案 (blob)
-                const response = await fetch(url, {
-                    // 可以加入 mode: 'cors' 確保跨域
-                });
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error('下載失敗 (HTTP ' + response.status + ')');
                 }
 
-                // 獲取檔案內容
                 const blob = await response.blob();
-
-                // 創建本地 URL
                 const objectURL = URL.createObjectURL(blob);
 
-                // 建立 a 標籤觸發下載
                 const a = document.createElement('a');
                 a.href = objectURL;
-                a.download = fileName; // 強制下載，不會預覽
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
 
-                // 釋放記憶體
                 setTimeout(() => {
                     URL.revokeObjectURL(objectURL);
                 }, 5000);
 
-                // 還原按鈕
                 if (window._downloadBtn) {
                     window._downloadBtn.textContent = '✅ 已下載';
                     setTimeout(() => {
@@ -690,22 +670,8 @@
         }
 
         // ============================================================
-        // 6. 管理員功能
+        // 6. 管理員功能（登入／退出）
         // ============================================================
-        function adminSecretClick() {
-            adminClickCount++;
-            clearTimeout(adminClickTimer);
-            adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 2000);
-            if (adminClickCount >= 3) {
-                adminClickCount = 0;
-                document.getElementById('adminModal').classList.add('show');
-                document.getElementById('adminError').classList.remove('show');
-                document.getElementById('adminUser').value = 'admin';
-                document.getElementById('adminPass').value = '7891';
-                document.getElementById('adminPass').focus();
-            }
-        }
-
         function adminLogin() {
             const user = document.getElementById('adminUser').value.trim();
             const pass = document.getElementById('adminPass').value.trim();
@@ -715,6 +681,8 @@
                 document.getElementById('adminBadge').classList.add('show');
                 document.getElementById('exitAdminBtn').style.display = 'inline-block';
                 showStatus('👑 管理員模式已啟用', 'success');
+                // 顯示主界面（如果被隱藏）
+                document.getElementById('mainUI').style.display = 'block';
                 loadFileList();
             } else {
                 document.getElementById('adminError').classList.add('show');
@@ -727,6 +695,22 @@
             document.getElementById('exitAdminBtn').style.display = 'none';
             showStatus('已退出管理員模式', 'info');
             loadFileList();
+        }
+
+        // 隐藏按钮（点击3次唤出登录，输入框保持为空）
+        function adminSecretClick() {
+            adminClickCount++;
+            clearTimeout(adminClickTimer);
+            adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 2000);
+            if (adminClickCount >= 3) {
+                adminClickCount = 0;
+                document.getElementById('adminModal').classList.add('show');
+                document.getElementById('adminError').classList.remove('show');
+                // 清空输入框
+                document.getElementById('adminUser').value = '';
+                document.getElementById('adminPass').value = '';
+                document.getElementById('adminPass').focus();
+            }
         }
 
         // ============================================================
@@ -770,7 +754,6 @@
                 debugBox.className = 'debug-box success';
                 debugBox.textContent = `✅ 找到檔案: ${data.file_name}\n短碼: ${shortCode}\n上傳者: ${data.uploader_email || '公開'}`;
 
-                // 更新下載次數
                 supabaseClient
                     .from('files')
                     .update({ download_count: (data.download_count || 0) + 1 })
@@ -831,9 +814,27 @@
         });
 
         // ============================================================
-        // 9. 啟動
+        // 9. 🔥 啟動邏輯（檢查路徑是否為 /admin）
         // ============================================================
         window.onload = function() {
+            // 檢查路徑是否以 /admin 結尾
+            const path = window.location.pathname;
+            const isAdminPage = path.endsWith('/admin') || path.split('/').pop() === 'admin';
+
+            if (isAdminPage) {
+                // 隱藏主界面，只顯示管理員登入框
+                document.getElementById('mainUI').style.display = 'none';
+                document.getElementById('downloadUI').style.display = 'none';
+                document.getElementById('adminModal').classList.add('show');
+                // 清空輸入框（確保沒有預設值）
+                document.getElementById('adminUser').value = '';
+                document.getElementById('adminPass').value = '';
+                document.getElementById('adminError').classList.remove('show');
+                // 不載入檔案列表
+                return;
+            }
+
+            // 正常流程：處理分享連結或主頁
             handleShareLink();
             const params = new URLSearchParams(window.location.search);
             if (!params.get('download')) {
@@ -842,7 +843,8 @@
             }
         };
 
-        console.log('🍎 蘋果網盤 - 強制下載版（100%不跳轉）');
+        console.log('🍎 蘋果網盤 - 管理員入口改為 URL 版');
+        console.log('🔑 訪問 /admin 進入管理員登入');
     </script>
 </body>
 </html>
