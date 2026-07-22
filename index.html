@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* ===== 樣式與之前完全一樣 ===== */
+        /* ===== 樣式與之前一樣，省略重複 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -453,52 +453,82 @@
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
-        let currentDownloadFileName = ''; // 用於短連結下載
+        let currentDownloadFileName = '';
 
         // ============================================================
-        // 2. 核心下載函數（不跳轉，直接下載）
+        // 2. 🔥 核心下載函數（絕不跳轉，強制下載）
         // ============================================================
         async function downloadFileDirect(url, fileName) {
+            // 如果沒有副檔名，從 URL 猜測
+            if (!fileName || fileName === '') {
+                const urlParts = url.split('/');
+                const lastPart = urlParts[urlParts.length - 1];
+                if (lastPart.includes('.')) {
+                    fileName = lastPart;
+                } else {
+                    fileName = '下載檔案';
+                }
+            }
+
+            // 顯示下載中狀態
+            const btns = document.querySelectorAll('button');
+            let targetBtn = null;
+            for (let btn of btns) {
+                if (btn.textContent.includes('下載') || btn.textContent.includes('下載')) {
+                    // 粗略尋找
+                }
+            }
+            // 我們用全域變數記錄按鈕
+            window._downloadBtn = document.activeElement;
+
             try {
-                // 顯示下載中狀態
-                const btn = document.getElementById('directDownloadBtn') || document.activeElement;
-                if (btn) {
-                    const originalText = btn.textContent;
-                    btn.textContent = '⏳ 下載中...';
-                    btn.disabled = true;
+                // 顯示下載中
+                if (window._downloadBtn) {
+                    window._downloadBtn.textContent = '⏳ 下載中...';
+                    window._downloadBtn.disabled = true;
                 }
 
-                // 使用 fetch 獲取檔案
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('下載失敗 (HTTP ' + response.status + ')');
+                // 使用 fetch 獲取檔案 (blob)
+                const response = await fetch(url, {
+                    // 可以加入 mode: 'cors' 確保跨域
+                });
+                if (!response.ok) {
+                    throw new Error('下載失敗 (HTTP ' + response.status + ')');
+                }
 
+                // 獲取檔案內容
                 const blob = await response.blob();
+
+                // 創建本地 URL
                 const objectURL = URL.createObjectURL(blob);
 
-                // 創建下載連結並觸發
+                // 建立 a 標籤觸發下載
                 const a = document.createElement('a');
                 a.href = objectURL;
-                a.download = fileName || '下載檔案';
+                a.download = fileName; // 強制下載，不會預覽
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
 
                 // 釋放記憶體
-                setTimeout(() => URL.revokeObjectURL(objectURL), 5000);
+                setTimeout(() => {
+                    URL.revokeObjectURL(objectURL);
+                }, 5000);
 
-                if (btn) {
-                    btn.textContent = '✅ 已下載';
+                // 還原按鈕
+                if (window._downloadBtn) {
+                    window._downloadBtn.textContent = '✅ 已下載';
                     setTimeout(() => {
-                        btn.textContent = '⬇️ 立即下載';
-                        btn.disabled = false;
-                    }, 2000);
+                        window._downloadBtn.textContent = '⬇️ 下載';
+                        window._downloadBtn.disabled = false;
+                    }, 1500);
                 }
             } catch (err) {
                 alert('下載失敗: ' + err.message);
                 console.error(err);
-                if (btn) {
-                    btn.textContent = '⬇️ 立即下載';
-                    btn.disabled = false;
+                if (window._downloadBtn) {
+                    window._downloadBtn.textContent = '⬇️ 下載';
+                    window._downloadBtn.disabled = false;
                 }
             }
         }
@@ -753,7 +783,6 @@
                 document.getElementById('directDownloadBtn').style.display = 'inline-block';
                 document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
 
-                // 儲存下載資訊給 directDownload 使用
                 window._downloadURL = data.download_url;
                 window._downloadFileName = data.file_name;
 
@@ -767,7 +796,6 @@
             }
         }
 
-        // 短連結頁面的「立即下載」按鈕
         function directDownload() {
             if (window._downloadURL && window._downloadFileName) {
                 downloadFileDirect(window._downloadURL, window._downloadFileName);
@@ -814,7 +842,7 @@
             }
         };
 
-        console.log('🍎 蘋果網盤 - 直接下載版已啟動（不跳轉）');
+        console.log('🍎 蘋果網盤 - 強制下載版（100%不跳轉）');
     </script>
 </body>
 </html>
