@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* ===== 样式与之前完全一样，省略重复 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -32,7 +31,7 @@
         }
         h1 {
             font-size: 26px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -43,7 +42,6 @@
             font-size: 14px;
             margin-bottom: 20px;
         }
-        /* 隐藏按钮仍然存在，但不再自动填入密码，且点击3次仍可唤出登录（备选） */
         #adminSecretBtn {
             position: absolute;
             top: 4px;
@@ -403,9 +401,12 @@
                 </div>
             </div>
 
-            <div class="file-count" id="fileCount">📁 共 0 個檔案</div>
-            <div id="fileList">
-                <div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>
+            <!-- ===== 檔案列表（普通用戶只顯示自己的檔案） ===== -->
+            <div id="fileListContainer">
+                <div class="file-count" id="fileCount">📁 共 0 個檔案</div>
+                <div id="fileList">
+                    <div class="empty-state">📭 還沒有檔案，快來上傳第一個吧！</div>
+                </div>
             </div>
         </div>
 
@@ -456,7 +457,20 @@
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
 
         // ============================================================
-        // 2. 🔥 核心下載函數（絕不跳轉）
+        // 2. 🔥 用戶 ID（用 localStorage 區分不同用戶）
+        // ============================================================
+        function getUserId() {
+            let userId = localStorage.getItem('applepan_user_id');
+            if (!userId) {
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                localStorage.setItem('applepan_user_id', userId);
+            }
+            return userId;
+        }
+        const CURRENT_USER_ID = getUserId();
+
+        // ============================================================
+        // 3. 🔥 核心下載函數（不跳轉）
         // ============================================================
         async function downloadFileDirect(url, fileName) {
             if (!fileName || fileName === '') {
@@ -514,7 +528,7 @@
         }
 
         // ============================================================
-        // 3. 工具函數
+        // 4. 工具函數
         // ============================================================
         function showStatus(text, type = 'info') {
             const el = document.getElementById('status');
@@ -533,7 +547,7 @@
         }
 
         // ============================================================
-        // 4. 上傳功能
+        // 5. 上傳功能（上傳時綁定用戶 ID）
         // ============================================================
         async function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -561,6 +575,7 @@
                 const shortCode = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 const shortLink = window.location.origin + window.location.pathname + '?download=' + shortCode;
 
+                // 🔥 儲存時帶入用戶 ID
                 const { error: dbError } = await supabaseClient
                     .from('files')
                     .insert({
@@ -569,7 +584,7 @@
                         file_type: file.type || 'unknown',
                         download_url: downloadURL,
                         short_code: shortCode,
-                        uploader: 'public',
+                        uploader: CURRENT_USER_ID,
                         uploader_email: '公開上傳'
                     });
 
@@ -608,18 +623,23 @@
         }
 
         // ============================================================
-        // 5. 載入檔案列表
+        // 6. 🔥 載入檔案列表（普通用戶只看自己的，管理員看全部）
         // ============================================================
         async function loadFileList() {
             try {
-                const { data, error } = await supabaseClient
-                    .from('files')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                let query = supabaseClient.from('files').select('*');
+
+                // 如果不是管理員，只顯示自己的檔案
+                if (!isAdmin) {
+                    query = query.eq('uploader', CURRENT_USER_ID);
+                }
+
+                const { data, error } = await query.order('created_at', { ascending: false });
 
                 if (error) throw error;
 
-                document.getElementById('fileCount').textContent = `📁 共 ${data?.length || 0} 個檔案`;
+                const count = data?.length || 0;
+                document.getElementById('fileCount').textContent = `📁 共 ${count} 個檔案`;
 
                 const container = document.getElementById('fileList');
                 if (!data || data.length === 0) {
@@ -633,11 +653,14 @@
                     const shortLink = window.location.origin + window.location.pathname + '?download=' + f.short_code;
                     const time = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
 
+                    // 如果是管理員，顯示上傳者資訊
+                    const uploaderInfo = isAdmin ? ` · 上傳者: ${f.uploader_email || f.uploader || '匿名'}` : '';
+
                     html += `
                         <div class="file-item">
                             <div class="file-info">
                                 <div class="file-name">📄 ${f.file_name}</div>
-                                <div class="file-meta">${sizeMB} MB · ${f.download_count || 0} 次下載 · ${time}</div>
+                                <div class="file-meta">${sizeMB} MB · ${f.download_count || 0} 次下載 · ${time}${uploaderInfo}</div>
                                 <div class="short-link">🔗 ${shortLink}</div>
                             </div>
                             <div class="file-actions">
@@ -670,7 +693,7 @@
         }
 
         // ============================================================
-        // 6. 管理員功能（登入／退出）
+        // 7. 管理員功能
         // ============================================================
         function adminLogin() {
             const user = document.getElementById('adminUser').value.trim();
@@ -681,8 +704,7 @@
                 document.getElementById('adminBadge').classList.add('show');
                 document.getElementById('exitAdminBtn').style.display = 'inline-block';
                 showStatus('👑 管理員模式已啟用', 'success');
-                // 顯示主界面（如果被隱藏）
-                document.getElementById('mainUI').style.display = 'block';
+                // 重新載入檔案列表（現在會顯示全部）
                 loadFileList();
             } else {
                 document.getElementById('adminError').classList.add('show');
@@ -694,10 +716,9 @@
             document.getElementById('adminBadge').classList.remove('show');
             document.getElementById('exitAdminBtn').style.display = 'none';
             showStatus('已退出管理員模式', 'info');
-            loadFileList();
+            loadFileList(); // 重新載入（只顯示自己的）
         }
 
-        // 隐藏按钮（点击3次唤出登录，输入框保持为空）
         function adminSecretClick() {
             adminClickCount++;
             clearTimeout(adminClickTimer);
@@ -706,7 +727,6 @@
                 adminClickCount = 0;
                 document.getElementById('adminModal').classList.add('show');
                 document.getElementById('adminError').classList.remove('show');
-                // 清空输入框
                 document.getElementById('adminUser').value = '';
                 document.getElementById('adminPass').value = '';
                 document.getElementById('adminPass').focus();
@@ -714,12 +734,23 @@
         }
 
         // ============================================================
-        // 7. 分享連結處理（短碼查詢）
+        // 8. 分享連結處理（短碼查詢）
         // ============================================================
         async function handleShareLink() {
             const params = new URLSearchParams(window.location.search);
             const shortCode = params.get('download');
             const debugBox = document.getElementById('debugBox');
+
+            // 🔥 檢查是否為管理員入口 ?admin
+            if (params.has('admin')) {
+                document.getElementById('mainUI').style.display = 'none';
+                document.getElementById('downloadUI').style.display = 'none';
+                document.getElementById('adminModal').classList.add('show');
+                document.getElementById('adminUser').value = '';
+                document.getElementById('adminPass').value = '';
+                document.getElementById('adminError').classList.remove('show');
+                return;
+            }
 
             if (!shortCode) {
                 document.getElementById('mainUI').style.display = 'block';
@@ -752,7 +783,7 @@
                 }
 
                 debugBox.className = 'debug-box success';
-                debugBox.textContent = `✅ 找到檔案: ${data.file_name}\n短碼: ${shortCode}\n上傳者: ${data.uploader_email || '公開'}`;
+                debugBox.textContent = `✅ 找到檔案: ${data.file_name}\n短碼: ${shortCode}\n上傳者: ${data.uploader_email || data.uploader || '公開'}`;
 
                 supabaseClient
                     .from('files')
@@ -788,7 +819,7 @@
         }
 
         // ============================================================
-        // 8. 拖曳支援
+        // 9. 拖曳支援
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const uploadArea = document.getElementById('uploadArea');
@@ -814,37 +845,27 @@
         });
 
         // ============================================================
-        // 9. 🔥 啟動邏輯（檢查路徑是否為 /admin）
+        // 10. 啟動
         // ============================================================
         window.onload = function() {
-            // 檢查路徑是否以 /admin 結尾
-            const path = window.location.pathname;
-            const isAdminPage = path.endsWith('/admin') || path.split('/').pop() === 'admin';
-
-            if (isAdminPage) {
-                // 隱藏主界面，只顯示管理員登入框
-                document.getElementById('mainUI').style.display = 'none';
-                document.getElementById('downloadUI').style.display = 'none';
-                document.getElementById('adminModal').classList.add('show');
-                // 清空輸入框（確保沒有預設值）
-                document.getElementById('adminUser').value = '';
-                document.getElementById('adminPass').value = '';
-                document.getElementById('adminError').classList.remove('show');
-                // 不載入檔案列表
-                return;
-            }
-
-            // 正常流程：處理分享連結或主頁
+            // 先處理分享連結和管理員入口
             handleShareLink();
+
+            // 如果沒有短碼且不是管理員入口，載入主頁
             const params = new URLSearchParams(window.location.search);
-            if (!params.get('download')) {
+            if (!params.get('download') && !params.has('admin')) {
+                document.getElementById('mainUI').style.display = 'block';
+                document.getElementById('downloadUI').style.display = 'none';
                 loadFileList();
                 showStatus('✅ 就緒', 'success');
+                console.log('👤 用戶 ID:', CURRENT_USER_ID);
+                console.log('📁 只顯示自己的檔案');
             }
         };
 
-        console.log('🍎 蘋果網盤 - 管理員入口改為 URL 版');
-        console.log('🔑 訪問 /admin 進入管理員登入');
+        console.log('🍎 蘋果網盤 - 普通用戶只看到自己的檔案');
+        console.log('🔑 管理員入口: ?admin');
+        console.log('👤 當前用戶 ID:', CURRENT_USER_ID);
     </script>
 </body>
 </html>
