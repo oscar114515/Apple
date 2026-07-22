@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
+        /* ===== 樣式與之前完全一樣 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -435,7 +436,7 @@
 
     <script>
         // ============================================================
-        // 1. Supabase 設定 (儲存檔案依然用這個)
+        // 1. Supabase 設定
         // ============================================================
         const SUPABASE_URL = 'https://mpygxmnugiknpqlkzczm.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_JHvmzxxmPDCyP7PH9eYtzQ_GWOBVHPS';
@@ -452,18 +453,63 @@
         let adminClickCount = 0;
         let adminClickTimer = null;
         let lastUploaded = { fileName: '', fileSize: 0, downloadURL: '', shortLink: '' };
+        let currentDownloadFileName = ''; // 用於短連結下載
 
         // ============================================================
-        // 2. 工具函數
+        // 2. 核心下載函數（不跳轉，直接下載）
+        // ============================================================
+        async function downloadFileDirect(url, fileName) {
+            try {
+                // 顯示下載中狀態
+                const btn = document.getElementById('directDownloadBtn') || document.activeElement;
+                if (btn) {
+                    const originalText = btn.textContent;
+                    btn.textContent = '⏳ 下載中...';
+                    btn.disabled = true;
+                }
+
+                // 使用 fetch 獲取檔案
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('下載失敗 (HTTP ' + response.status + ')');
+
+                const blob = await response.blob();
+                const objectURL = URL.createObjectURL(blob);
+
+                // 創建下載連結並觸發
+                const a = document.createElement('a');
+                a.href = objectURL;
+                a.download = fileName || '下載檔案';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // 釋放記憶體
+                setTimeout(() => URL.revokeObjectURL(objectURL), 5000);
+
+                if (btn) {
+                    btn.textContent = '✅ 已下載';
+                    setTimeout(() => {
+                        btn.textContent = '⬇️ 立即下載';
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            } catch (err) {
+                alert('下載失敗: ' + err.message);
+                console.error(err);
+                if (btn) {
+                    btn.textContent = '⬇️ 立即下載';
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // ============================================================
+        // 3. 工具函數
         // ============================================================
         function showStatus(text, type = 'info') {
             const el = document.getElementById('status');
             el.textContent = text;
             el.className = 'show ' + type;
-        }
-
-        function downloadFile(url) {
-            window.open(url, '_blank');
         }
 
         function copyLink(link) {
@@ -477,7 +523,7 @@
         }
 
         // ============================================================
-        // 3. 上傳功能 (儲存到 Supabase Storage + 資料庫)
+        // 4. 上傳功能
         // ============================================================
         async function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -491,14 +537,12 @@
                 const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
                 const filePath = `public/${fileName}`;
 
-                // 上傳到 Storage
                 const { error: uploadError } = await supabaseClient.storage
                     .from(BUCKET)
                     .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
                 if (uploadError) throw uploadError;
 
-                // 取得公開 URL
                 const { data: urlData } = supabaseClient.storage
                     .from(BUCKET)
                     .getPublicUrl(filePath);
@@ -507,7 +551,6 @@
                 const shortCode = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
                 const shortLink = window.location.origin + window.location.pathname + '?download=' + shortCode;
 
-                // 儲存到資料庫 (files 表)
                 const { error: dbError } = await supabaseClient
                     .from('files')
                     .insert({
@@ -542,8 +585,11 @@
         }
 
         function downloadSuccessFile() {
-            if (lastUploaded.downloadURL) downloadFile(lastUploaded.downloadURL);
-            else alert('沒有可下載的檔案');
+            if (lastUploaded.downloadURL) {
+                downloadFileDirect(lastUploaded.downloadURL, lastUploaded.fileName);
+            } else {
+                alert('沒有可下載的檔案');
+            }
         }
 
         function copySuccessLink() {
@@ -552,7 +598,7 @@
         }
 
         // ============================================================
-        // 4. 載入檔案列表
+        // 5. 載入檔案列表
         // ============================================================
         async function loadFileList() {
             try {
@@ -586,7 +632,7 @@
                             </div>
                             <div class="file-actions">
                                 <button onclick="copyLink('${shortLink}')">📋 複製</button>
-                                <button onclick="downloadFile('${f.download_url}')">⬇️ 下載</button>
+                                <button onclick="downloadFileDirect('${f.download_url}', '${f.file_name}')">⬇️ 下載</button>
                                 ${isAdmin ? `<button class="delete-btn" onclick="deleteFile('${f.id}', '${f.download_url}')">🗑️ 刪除</button>` : ''}
                             </div>
                         </div>
@@ -614,7 +660,7 @@
         }
 
         // ============================================================
-        // 5. 管理員功能
+        // 6. 管理員功能
         // ============================================================
         function adminSecretClick() {
             adminClickCount++;
@@ -654,38 +700,33 @@
         }
 
         // ============================================================
-        // 6. 🔥 分享連結處理（短碼查詢修復）
+        // 7. 分享連結處理（短碼查詢）
         // ============================================================
         async function handleShareLink() {
             const params = new URLSearchParams(window.location.search);
             const shortCode = params.get('download');
             const debugBox = document.getElementById('debugBox');
 
-            // 沒有短碼 → 顯示主界面
             if (!shortCode) {
                 document.getElementById('mainUI').style.display = 'block';
                 document.getElementById('downloadUI').style.display = 'none';
                 return;
             }
 
-            // 有短碼 → 顯示下載頁面
             document.getElementById('mainUI').style.display = 'none';
             document.getElementById('downloadUI').style.display = 'block';
 
-            // 顯示診斷資訊
             debugBox.style.display = 'block';
             debugBox.className = 'debug-box info';
             debugBox.textContent = `🔍 查詢短碼: ${shortCode}\n⏳ 正在查詢資料庫...`;
 
             try {
-                // 🔥 使用 maybeSingle() 替代 single()，避免查不到時報錯
                 const { data, error } = await supabaseClient
                     .from('files')
                     .select('*')
                     .eq('short_code', shortCode)
                     .maybeSingle();
 
-                // 如果 error 存在或 data 為 null，表示找不到
                 if (error || !data) {
                     debugBox.className = 'debug-box error';
                     debugBox.textContent = `❌ 找不到短碼: ${shortCode}\n可能原因：檔案已被刪除，或短碼複製錯誤。\n資料庫回傳: ${error ? error.message : '無資料'}`;
@@ -696,11 +737,10 @@
                     return;
                 }
 
-                // ✅ 找到檔案
                 debugBox.className = 'debug-box success';
                 debugBox.textContent = `✅ 找到檔案: ${data.file_name}\n短碼: ${shortCode}\n上傳者: ${data.uploader_email || '公開'}`;
 
-                // 更新下載次數（非同步）
+                // 更新下載次數
                 supabaseClient
                     .from('files')
                     .update({ download_count: (data.download_count || 0) + 1 })
@@ -713,7 +753,9 @@
                 document.getElementById('directDownloadBtn').style.display = 'inline-block';
                 document.getElementById('backHomeLink').href = window.location.origin + window.location.pathname;
 
+                // 儲存下載資訊給 directDownload 使用
                 window._downloadURL = data.download_url;
+                window._downloadFileName = data.file_name;
 
             } catch (err) {
                 debugBox.className = 'debug-box error';
@@ -725,16 +767,17 @@
             }
         }
 
+        // 短連結頁面的「立即下載」按鈕
         function directDownload() {
-            if (window._downloadURL) {
-                downloadFile(window._downloadURL);
+            if (window._downloadURL && window._downloadFileName) {
+                downloadFileDirect(window._downloadURL, window._downloadFileName);
             } else {
                 alert('無法下載，請重新整理頁面');
             }
         }
 
         // ============================================================
-        // 7. 拖曳支援
+        // 8. 拖曳支援
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const uploadArea = document.getElementById('uploadArea');
@@ -760,7 +803,7 @@
         });
 
         // ============================================================
-        // 8. 啟動
+        // 9. 啟動
         // ============================================================
         window.onload = function() {
             handleShareLink();
@@ -771,7 +814,7 @@
             }
         };
 
-        console.log('🍎 蘋果網盤修復版已啟動 (短碼查詢使用 maybeSingle)');
+        console.log('🍎 蘋果網盤 - 直接下載版已啟動（不跳轉）');
     </script>
 </body>
 </html>
